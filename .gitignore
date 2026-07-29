@@ -1,0 +1,21 @@
+# Spring Boot
+**/application.properties
+
+# Build
+target/
+build/
+out/
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
