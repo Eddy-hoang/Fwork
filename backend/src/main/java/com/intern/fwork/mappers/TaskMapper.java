@@ -2,10 +2,16 @@ package com.intern.fwork.mappers;
 
 import com.intern.fwork.dtos.response.TaskResponse;
 import com.intern.fwork.entities.Task;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
+@RequiredArgsConstructor
 public class TaskMapper {
+
+    private final LabelMapper labelMapper;
 
     public TaskResponse toResponse(Task task) {
         if (task == null) {
@@ -22,6 +28,9 @@ public class TaskMapper {
                 .createdBy(task.getCreatedBy() != null ? task.getCreatedBy().getId() : null)
                 .updatedBy(task.getUpdatedBy() != null ? task.getUpdatedBy().getId() : null)
                 .assigneeId(task.getAssignee() != null ? task.getAssignee().getId() : null)
+                .labels(task.getLabels() != null
+                        ? task.getLabels().stream().map(labelMapper::toResponse).toList()
+                        : List.of())
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .isArchived(task.isArchived())

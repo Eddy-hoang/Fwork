@@ -10,11 +10,15 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 @Repository
-public interface TaskRepository extends JpaRepository<Task, UUID> {
+public interface TaskRepository extends JpaRepository<Task, UUID>, JpaSpecificationExecutor<Task> {
     
     List<Task> findByColumnIdAndIsArchivedFalseOrderByPositionAsc(UUID columnId);
 
     @Query("SELECT t FROM Task t WHERE t.column.board.id = :boardId AND t.isArchived = false ORDER BY t.column.position ASC, t.position ASC")
     List<Task> findByBoardId(@Param("boardId") UUID boardId);
+
+    List<Task> findByLabelsId(UUID labelId);
 }

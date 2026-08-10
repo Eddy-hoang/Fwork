@@ -53,6 +53,15 @@ public class Task {
     @JoinColumn(name = "updated_by", nullable = false)
     private User updatedBy;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "task_labels",
+        joinColumns = @JoinColumn(name = "task_id"),
+        inverseJoinColumns = @JoinColumn(name = "label_id")
+    )
+    @Builder.Default
+    private java.util.Set<Label> labels = new java.util.HashSet<>();
+
     @Column(name = "is_archived", nullable = false)
     @Builder.Default
     private boolean isArchived = false;

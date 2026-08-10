@@ -3,9 +3,11 @@ package com.intern.fwork.controllers;
 import com.intern.fwork.dtos.request.AssignTaskRequest;
 import com.intern.fwork.dtos.request.CreateTaskRequest;
 import com.intern.fwork.dtos.request.MoveTaskRequest;
+import com.intern.fwork.dtos.request.TaskLabelsRequest;
 import com.intern.fwork.dtos.request.UpdateTaskRequest;
 import com.intern.fwork.dtos.response.ApiResponse;
 import com.intern.fwork.dtos.response.TaskResponse;
+import com.intern.fwork.enums.Priority;
 import com.intern.fwork.services.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -73,5 +75,28 @@ public class TaskController {
             @Valid @RequestBody AssignTaskRequest request
     ) {
         return ApiResponse.success(taskService.assign(id, request));
+    }
+
+    @PutMapping("/api/tasks/{id}/labels")
+    public ApiResponse<TaskResponse> updateLabels(
+            @PathVariable UUID id,
+            @Valid @RequestBody TaskLabelsRequest request
+    ) {
+        return ApiResponse.success(taskService.updateLabels(id, request));
+    }
+
+    @GetMapping("/api/boards/{boardId}/tasks/search")
+    public ApiResponse<List<TaskResponse>> searchTasks(
+            @PathVariable UUID boardId,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Priority priority,
+            @RequestParam(required = false) UUID assigneeId,
+            @RequestParam(required = false) UUID labelId,
+            @RequestParam(required = false) Boolean overdue,
+            @RequestParam(required = false, defaultValue = "position") String sort,
+            @RequestParam(required = false, defaultValue = "asc") String dir
+    ) {
+        return ApiResponse.success(
+                taskService.searchTasks(boardId, q, priority, assigneeId, labelId, overdue, sort, dir));
     }
 }

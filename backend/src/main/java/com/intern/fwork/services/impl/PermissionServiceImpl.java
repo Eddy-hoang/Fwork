@@ -1,5 +1,6 @@
 package com.intern.fwork.services.impl;
 
+import com.intern.fwork.entities.Comment;
 import com.intern.fwork.entities.Board;
 import com.intern.fwork.entities.BoardColumn;
 import com.intern.fwork.entities.Task;
@@ -8,10 +9,12 @@ import com.intern.fwork.enums.WorkspaceRole;
 import com.intern.fwork.exceptions.BoardColumnNotFoundException;
 import com.intern.fwork.exceptions.BoardNotFoundException;
 import com.intern.fwork.exceptions.ForbiddenOperationException;
+import com.intern.fwork.exceptions.ResourceNotFoundException;
 import com.intern.fwork.exceptions.TaskNotFoundException;
 import com.intern.fwork.exceptions.UserNotFoundException;
 import com.intern.fwork.repositories.BoardColumnRepository;
 import com.intern.fwork.repositories.BoardRepository;
+import com.intern.fwork.repositories.CommentRepository;
 import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.repositories.UserRepository;
 import com.intern.fwork.repositories.WorkspaceMemberRepository;
@@ -33,6 +36,7 @@ public class PermissionServiceImpl implements PermissionService {
     private final BoardColumnRepository boardColumnRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     public WorkspaceRole getWorkspaceRole(UUID workspaceId, UUID userId) {
@@ -177,6 +181,52 @@ public class PermissionServiceImpl implements PermissionService {
             }
             if (!workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, assigneeId)) {
                 throw new AccessDeniedException("Assignee must be a member of the workspace");
+            }
+        }
+    }
+
+    @Override
+    public void checkManageLabels(UUID boardId, UUID userId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+        WorkspaceRole role = getWorkspaceRole(board.getWorkspace().getId(), userId);
+        if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
+            throw new ForbiddenOperationException("Only OWNER or ADMIN can manage board labels");
+        }
+    }
+
+    @Override
+    public void checkCreateComment(UUID taskId, UUID userId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+        checkReadWorkspace(task.getColumn().getBoard().getWorkspace().getId(), userId);
+    }
+
+    @Override
+    public void checkUpdateComment(UUID commentId, UUID userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+        if (!comment.getCreatedBy().getId().equals(userId)) {
+            throw new ForbiddenOperationException("Only the author can edit this comment");
+        }
+    }
+
+    @Override
+    public void checkDeleteComment(UUID commentId, UUID userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+        UUID workspaceId = comment.getTask().getColumn().getBoard().getWorkspace().getId();
+        boolean isMember = workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, userId);
+        if (!isMember) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have access to this workspace");
+        }
+
+        boolean isAuthor = comment.getCreatedBy().getId().equals(userId);
+        if (!isAuthor) {
+            WorkspaceRole role = getWorkspaceRole(workspaceId, userId);
+            if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
+                throw new ForbiddenOperationException("You do not have permission to delete this comment");
             }
         }
     }

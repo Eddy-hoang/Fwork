@@ -36,4 +36,12 @@ public interface PermissionService {
     void checkDeleteTask(UUID taskId, UUID userId);
 
     void checkAssignTask(UUID taskId, UUID assigneeId, UUID userId);
+
+    void checkManageLabels(UUID boardId, UUID userId);
+
+    void checkCreateComment(UUID taskId, UUID userId);
+
+    void checkUpdateComment(UUID commentId, UUID userId);
+
+    void checkDeleteComment(UUID commentId, UUID userId);
 }

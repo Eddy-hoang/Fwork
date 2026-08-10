@@ -40,7 +40,8 @@ public class TaskResponse {
 
     private LocalDateTime updatedAt;
 
+    private java.util.List<LabelResponse> labels;
+
     @JsonProperty("isArchived")
     private boolean isArchived;
-
 }
