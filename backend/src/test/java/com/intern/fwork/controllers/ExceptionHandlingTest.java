@@ -2,6 +2,7 @@ package com.intern.fwork.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intern.fwork.dtos.request.CreateTaskRequest;
+import com.intern.fwork.dtos.request.MoveTaskRequest;
 import com.intern.fwork.entities.*;
 import com.intern.fwork.enums.Role;
 import com.intern.fwork.enums.WorkspaceRole;
@@ -213,5 +214,69 @@ public class ExceptionHandlingTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status", is(401)))
                 .andExpect(jsonPath("$.error", is("Unauthorized")));
+    }
+
+    @Test
+    public void testValidationFail_PositionNegative() throws Exception {
+        authenticate(ownerUser);
+        CreateTaskRequest invalidRequest = new CreateTaskRequest();
+        invalidRequest.setTitle("Valid Title");
+        invalidRequest.setPosition(-5); // Negative position
+
+        mockMvc.perform(post("/api/columns/" + column.getId() + "/tasks")
+                        .with(authentication(currentAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.errors.position", is("Position must be >= 0")));
+    }
+
+    @Test
+    public void testMoveTask_PositionNegative() throws Exception {
+        authenticate(ownerUser);
+        MoveTaskRequest invalidRequest = new MoveTaskRequest();
+        invalidRequest.setTargetColumnId(column.getId());
+        invalidRequest.setTargetPosition(-1); // Negative position
+
+        mockMvc.perform(patch("/api/tasks/" + task.getId() + "/move")
+                        .with(authentication(currentAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.errors.targetPosition", is("Target position must be >= 0")));
+    }
+
+    @Test
+    public void testMoveTask_PositionClamp() throws Exception {
+        authenticate(ownerUser);
+        MoveTaskRequest clampRequest = new MoveTaskRequest();
+        clampRequest.setTargetColumnId(column.getId());
+        clampRequest.setTargetPosition(999999); // Clamp to end of list
+
+        mockMvc.perform(patch("/api/tasks/" + task.getId() + "/move")
+                        .with(authentication(currentAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(clampRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.data.position", is(0))); // only 1 task in column, so clamped to index 0
+    }
+
+    @Test
+    public void testValidationFail_TitleTooLong() throws Exception {
+        authenticate(ownerUser);
+        CreateTaskRequest invalidRequest = new CreateTaskRequest();
+        invalidRequest.setTitle("a".repeat(256)); // > 255 chars
+        invalidRequest.setPosition(0);
+
+        mockMvc.perform(post("/api/columns/" + column.getId() + "/tasks")
+                        .with(authentication(currentAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.errors.title", is("Task title must not exceed 255 characters")));
     }
 }
