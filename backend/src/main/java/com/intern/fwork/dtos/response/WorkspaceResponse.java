@@ -20,4 +20,6 @@ public class WorkspaceResponse {
     private WorkspaceRole currentUserRole;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private UUID createdBy;
+    private UUID updatedBy;
 }

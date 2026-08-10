@@ -107,7 +107,7 @@ public class ExceptionHandlingTest {
                 .name("Test Workspace")
                 .slug("test-workspace")
                 .description("Workspace for integration testing")
-                .createdBy(ownerUser.getId())
+                .createdBy(ownerUser)
                 .build();
         workspace = workspaceRepository.save(workspace);
 

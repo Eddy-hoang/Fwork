@@ -18,6 +18,8 @@ public class WorkspaceMapper {
                 .description(workspace.getDescription())
                 .createdAt(workspace.getCreatedAt())
                 .updatedAt(workspace.getUpdatedAt())
+                .createdBy(workspace.getCreatedBy() != null ? workspace.getCreatedBy().getId() : null)
+                .updatedBy(workspace.getUpdatedBy() != null ? workspace.getUpdatedBy().getId() : null)
                 .build();
     }
 }

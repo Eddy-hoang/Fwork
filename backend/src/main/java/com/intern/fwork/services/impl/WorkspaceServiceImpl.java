@@ -50,7 +50,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .slug(slug)
                 .description(request.getDescription())
                 .isArchived(false)
-                .createdBy(currentUser.getId())
+                .createdBy(currentUser)
                 .build();
 
         Workspace savedWorkspace = workspaceRepository.save(workspace);
@@ -128,7 +128,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
         workspace.setName(request.getName());
         workspace.setDescription(request.getDescription());
-        workspace.setUpdatedBy(currentUser.getId());
+        workspace.setUpdatedBy(currentUser);
 
         Workspace savedWorkspace = workspaceRepository.save(workspace);
 
@@ -154,7 +154,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         permissionService.checkDeleteWorkspace(id, currentUser.getId());
 
         workspace.setArchived(true);
-        workspace.setUpdatedBy(currentUser.getId());
+        workspace.setUpdatedBy(currentUser);
         workspaceRepository.save(workspace);
     }
 
