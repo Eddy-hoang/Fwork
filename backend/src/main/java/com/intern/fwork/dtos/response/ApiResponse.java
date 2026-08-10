@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -13,11 +15,24 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)//Bo qua truong hop null khi chuyen qua json
 public class ApiResponse<T> {
 
-    @Builder.Default
-    private int status = 200;
+    private boolean success;
+
+    private int status;
 
     private String message;
 
     // T co the la broad,user,task,....
     private T data;
+
+    private LocalDateTime timestamp;
+
+    public static <T> ApiResponse<T> success(T data){
+        return ApiResponse.<T>builder()
+                .success(true)
+                .status(200)
+                .message("Success")
+                .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 }

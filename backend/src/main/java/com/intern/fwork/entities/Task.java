@@ -40,6 +40,18 @@ public class Task {
     @JoinColumn(name = "column_id", nullable = false)
     private BoardColumn column;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by")
+    private User updatedBy;
+
+    @Column(name = "is_archived", nullable = false)
+    @Builder.Default
+    private boolean isArchived = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
