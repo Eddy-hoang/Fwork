@@ -1,5 +1,6 @@
 package com.intern.fwork.controllers;
 
+import com.intern.fwork.dtos.request.AssignTaskRequest;
 import com.intern.fwork.dtos.request.CreateTaskRequest;
 import com.intern.fwork.dtos.request.MoveTaskRequest;
 import com.intern.fwork.dtos.request.UpdateTaskRequest;
@@ -64,5 +65,13 @@ public class TaskController {
             @Valid @RequestBody MoveTaskRequest request
     ) {
         return ApiResponse.success(taskService.move(id, request));
+    }
+
+    @PatchMapping("/api/tasks/{id}/assignee")
+    public ApiResponse<TaskResponse> assign(
+            @PathVariable UUID id,
+            @Valid @RequestBody AssignTaskRequest request
+    ) {
+        return ApiResponse.success(taskService.assign(id, request));
     }
 }

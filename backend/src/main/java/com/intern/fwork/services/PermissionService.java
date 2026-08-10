@@ -34,4 +34,6 @@ public interface PermissionService {
     void checkUpdateTask(UUID taskId, UUID userId);
     
     void checkDeleteTask(UUID taskId, UUID userId);
+
+    void checkAssignTask(UUID taskId, UUID assigneeId, UUID userId);
 }

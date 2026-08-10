@@ -21,6 +21,7 @@ public class TaskMapper {
                 .columnId(task.getColumn() != null ? task.getColumn().getId() : null)
                 .createdBy(task.getCreatedBy() != null ? task.getCreatedBy().getId() : null)
                 .updatedBy(task.getUpdatedBy() != null ? task.getUpdatedBy().getId() : null)
+                .assigneeId(task.getAssignee() != null ? task.getAssignee().getId() : null)
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .isArchived(task.isArchived())

@@ -34,6 +34,8 @@ public class TaskResponse {
 
     private UUID updatedBy;
 
+    private UUID assigneeId;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

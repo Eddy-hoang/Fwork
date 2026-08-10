@@ -1,5 +1,6 @@
 package com.intern.fwork.services;
 
+import com.intern.fwork.dtos.request.AssignTaskRequest;
 import com.intern.fwork.dtos.request.CreateTaskRequest;
 import com.intern.fwork.dtos.request.MoveTaskRequest;
 import com.intern.fwork.dtos.request.UpdateTaskRequest;
@@ -23,5 +24,7 @@ public interface TaskService {
     void delete(UUID id);
 
     TaskResponse move(UUID id, MoveTaskRequest request);
+
+    TaskResponse assign(UUID id, AssignTaskRequest request);
 
 }

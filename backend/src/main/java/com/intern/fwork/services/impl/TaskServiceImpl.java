@@ -1,9 +1,11 @@
 package com.intern.fwork.services.impl;
 
+import com.intern.fwork.dtos.request.AssignTaskRequest;
 import com.intern.fwork.dtos.request.CreateTaskRequest;
 import com.intern.fwork.dtos.request.MoveTaskRequest;
 import com.intern.fwork.dtos.request.UpdateTaskRequest;
 import com.intern.fwork.dtos.response.TaskResponse;
+import com.intern.fwork.exceptions.UserNotFoundException;
 import com.intern.fwork.entities.Board;
 import com.intern.fwork.entities.BoardColumn;
 import com.intern.fwork.entities.Task;
@@ -15,6 +17,7 @@ import com.intern.fwork.mappers.TaskMapper;
 import com.intern.fwork.repositories.BoardColumnRepository;
 import com.intern.fwork.repositories.BoardRepository;
 import com.intern.fwork.repositories.TaskRepository;
+import com.intern.fwork.repositories.UserRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.PermissionService;
 import com.intern.fwork.services.TaskService;
@@ -33,6 +36,7 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final BoardColumnRepository boardColumnRepository;
     private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
     private final TaskMapper taskMapper;
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
@@ -217,5 +221,27 @@ public class TaskServiceImpl implements TaskService {
         }
 
         return taskMapper.toResponse(task);
+    }
+
+    @Override
+    @Transactional
+    public TaskResponse assign(UUID id, AssignTaskRequest request) {
+        User currentUser = securityUtils.getCurrentUser();
+
+        permissionService.checkAssignTask(id, request.getAssigneeId(), currentUser.getId());
+
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+
+        if (request.getAssigneeId() != null) {
+            User assignee = userRepository.findById(request.getAssigneeId())
+                    .orElseThrow(() -> new UserNotFoundException("Assignee not found"));
+            task.setAssignee(assignee);
+        } else {
+            task.setAssignee(null);
+        }
+
+        task.setUpdatedBy(currentUser);
+        return taskMapper.toResponse(taskRepository.save(task));
     }
 }

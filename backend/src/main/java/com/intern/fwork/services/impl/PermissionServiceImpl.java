@@ -9,9 +9,11 @@ import com.intern.fwork.exceptions.BoardColumnNotFoundException;
 import com.intern.fwork.exceptions.BoardNotFoundException;
 import com.intern.fwork.exceptions.ForbiddenOperationException;
 import com.intern.fwork.exceptions.TaskNotFoundException;
+import com.intern.fwork.exceptions.UserNotFoundException;
 import com.intern.fwork.repositories.BoardColumnRepository;
 import com.intern.fwork.repositories.BoardRepository;
 import com.intern.fwork.repositories.TaskRepository;
+import com.intern.fwork.repositories.UserRepository;
 import com.intern.fwork.repositories.WorkspaceMemberRepository;
 import com.intern.fwork.services.PermissionService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class PermissionServiceImpl implements PermissionService {
     private final BoardRepository boardRepository;
     private final BoardColumnRepository boardColumnRepository;
     private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
 
     @Override
     public WorkspaceRole getWorkspaceRole(UUID workspaceId, UUID userId) {
@@ -151,6 +154,30 @@ public class PermissionServiceImpl implements PermissionService {
         WorkspaceRole role = getWorkspaceRole(task.getColumn().getBoard().getWorkspace().getId(), userId);
         if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
             throw new ForbiddenOperationException("Only OWNER or ADMIN can delete tasks");
+        }
+    }
+
+    @Override
+    public void checkAssignTask(UUID taskId, UUID assigneeId, UUID userId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+
+        UUID workspaceId = task.getColumn().getBoard().getWorkspace().getId();
+
+        // 1. Check current user has access to workspace (OWNER, ADMIN, or MEMBER)
+        boolean existsCurrentUser = workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, userId);
+        if (!existsCurrentUser) {
+            throw new AccessDeniedException("You do not have access to this workspace");
+        }
+
+        // 2. If assigneeId is provided, verify they exist and belong to the workspace
+        if (assigneeId != null) {
+            if (!userRepository.existsById(assigneeId)) {
+                throw new UserNotFoundException("Assignee not found");
+            }
+            if (!workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, assigneeId)) {
+                throw new AccessDeniedException("Assignee must be a member of the workspace");
+            }
         }
     }
 }
