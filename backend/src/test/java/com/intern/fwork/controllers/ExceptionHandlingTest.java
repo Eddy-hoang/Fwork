@@ -279,4 +279,14 @@ public class ExceptionHandlingTest {
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.errors.title", is("Task title must not exceed 255 characters")));
     }
+
+    @Test
+    public void testUnauthorized_InvalidJWT_401() throws Exception {
+        // Request secure endpoint with invalid/malformed Bearer token -> returns HTTP 401 Unauthorized
+        mockMvc.perform(get("/api/tasks/" + task.getId())
+                        .header("Authorization", "Bearer invalidjwttokenpayload"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)))
+                .andExpect(jsonPath("$.error", is("Unauthorized")));
+    }
 }

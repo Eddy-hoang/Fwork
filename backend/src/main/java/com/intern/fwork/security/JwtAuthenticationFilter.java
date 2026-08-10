@@ -38,33 +38,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // BƯỚC 2: Cắt lấy JWT
-        String jwt = authHeader.substring(7);
+        try {
+            // BƯỚC 2: Cắt lấy JWT
+            String jwt = authHeader.substring(7);
 
-        // BƯỚC 3: Lấy username từ JWT
-        String username = jwtService.extractUsername(jwt);
+            // BƯỚC 3: Lấy username từ JWT
+            String username = jwtService.extractUsername(jwt);
 
-        // BƯỚC 4: Nếu chưa Authentication
-        if (username != null
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // BƯỚC 4: Nếu chưa Authentication
+            if (username != null
+                    && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails =
+                        userDetailsService.loadUserByUsername(username);
 
-            // BƯỚC 5: Validate JWT
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+                // BƯỚC 5: Validate JWT
+                if (jwtService.isTokenValid(jwt, userDetails)) {
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
-                SecurityContextHolder
-                        .getContext()
-                        .setAuthentication(authentication);
+                    SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(authentication);
+                }
             }
+        } catch (Exception ex) {
+            // Token is malformed, signature failed, expired, etc.
+            // Log the error and continue filter chain without setting authentication context.
+            logger.debug("JWT token validation failed: " + ex.getMessage());
         }
 
         // BƯỚC 6: Cho request đi tiếp
