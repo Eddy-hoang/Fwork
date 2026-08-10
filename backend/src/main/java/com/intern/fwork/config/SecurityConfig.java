@@ -40,6 +40,15 @@ public class SecurityConfig {
                                 SessionCreationPolicy.STATELESS
                         )
                 )
+                
+                // Trả về 401 Unauthorized cho các request chưa authenticate
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(401);
+                            response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"" + authException.getMessage() + "\"}");
+                        })
+                )
 
                 // Phân quyền
                 .authorizeHttpRequests(auth -> auth
