@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "columns")
+@org.hibernate.annotations.Check(constraints = "position >= 0")
 @Getter
 @Setter
 @NoArgsConstructor

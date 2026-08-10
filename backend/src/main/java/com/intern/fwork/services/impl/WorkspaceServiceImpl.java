@@ -51,6 +51,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .description(request.getDescription())
                 .isArchived(false)
                 .createdBy(currentUser)
+                .updatedBy(currentUser)
                 .build();
 
         Workspace savedWorkspace = workspaceRepository.save(workspace);

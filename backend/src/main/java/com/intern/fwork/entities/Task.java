@@ -8,6 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "tasks")
+@org.hibernate.annotations.Check(constraints = "position >= 0")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -41,11 +42,11 @@ public class Task {
     private BoardColumn column;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
+    @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
+    @JoinColumn(name = "updated_by", nullable = false)
     private User updatedBy;
 
     @Column(name = "is_archived", nullable = false)
