@@ -2,6 +2,7 @@ package com.intern.fwork.services.impl;
 
 import com.intern.fwork.entities.RefreshToken;
 import com.intern.fwork.entities.User;
+import com.intern.fwork.exceptions.ResourceNotFoundException;
 import com.intern.fwork.repositories.RefreshTokenRepository;
 import com.intern.fwork.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         RefreshToken refreshToken =
                 refreshTokenRepository.findByToken(token)
                         .orElseThrow(() ->
-                                new RuntimeException("Refresh token not found"));
+                                new ResourceNotFoundException("Refresh token not found"));
 
         if (refreshToken.isRevoked()) {
             throw new RuntimeException("Refresh token revoked");
@@ -61,7 +62,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         RefreshToken refreshToken =
                 refreshTokenRepository.findByToken(token)
                         .orElseThrow(() ->
-                                new RuntimeException("Token not found"));
+                                new ResourceNotFoundException("Token not found"));
 
         refreshToken.setRevoked(true);
 
