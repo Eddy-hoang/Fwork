@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, LogOut, Plus, Search, Command, Bell } from "lucide-react";
+import { ChevronDown, LogOut, Plus, Search, Command, Bell, CheckCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useLayout } from "./AppLayout";
+import { notificationApi } from "../../lib/api";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
 
@@ -11,13 +12,59 @@ const Topbar = ({ title, subtitle, actions, onCreateBoard }) => {
   const { openCommand } = useLayout() || {};
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
   const ref = useRef(null);
+  const notifRef = useRef(null);
 
   useEffect(() => {
-    const onClick = (e) => ref.current && !ref.current.contains(e.target) && setMenuOpen(false);
+    const onClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setMenuOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+    };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  // Fetch unread count periodically
+  useEffect(() => {
+    if (!user) return;
+    const fetchUnread = () => {
+      notificationApi
+        .getUnreadCount()
+        .then((data) => setUnreadCount(data?.count || 0))
+        .catch(() => {});
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const loadNotifications = () => {
+    notificationApi
+      .list({ page: 0, size: 10 })
+      .then((data) => {
+        setNotifications(data?.content || data || []);
+      })
+      .catch(() => {});
+  };
+
+  const handleNotifClick = () => {
+    setNotifOpen((o) => {
+      const next = !o;
+      if (next) loadNotifications();
+      return next;
+    });
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await notificationApi.markAllAsRead();
+      setUnreadCount(0);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (err) {}
+  };
 
   return (
     <header className="glass sticky top-0 z-20 flex h-[72px] items-center gap-4 border-b px-6">
@@ -41,12 +88,54 @@ const Topbar = ({ title, subtitle, actions, onCreateBoard }) => {
 
         {actions}
 
-        <button
-          className="hidden h-10 w-10 items-center justify-center rounded-full border border-line bg-surface text-muted shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-px hover:text-ink hover:shadow-[var(--shadow-soft)] sm:flex"
-          title="Notifications"
-        >
-          <Bell className="h-4.5 w-4.5" />
-        </button>
+        {/* Notifications Dropdown */}
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={handleNotifClick}
+            className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-line bg-surface text-muted shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-px hover:text-ink hover:shadow-[var(--shadow-soft)] sm:flex"
+            title="Notifications"
+          >
+            <Bell className="h-4.5 w-4.5" />
+            {unreadCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-priority-urgent text-[10px] font-bold text-white shadow-sm">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <div className="card animate-in absolute right-0 mt-2 w-80 rounded-2xl p-3 shadow-[var(--shadow-lift)] z-30">
+              <div className="flex items-center justify-between pb-2 border-b border-line">
+                <span className="font-semibold text-sm text-ink">Notifications</span>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    className="flex items-center gap-1 text-xs text-brand-600 hover:underline"
+                  >
+                    <CheckCircle className="h-3.5 w-3.5" /> Mark all read
+                  </button>
+                )}
+              </div>
+              <div className="max-h-64 overflow-y-auto py-2 flex flex-col gap-1.5">
+                {notifications.length === 0 ? (
+                  <p className="py-4 text-center text-xs text-muted">No notifications</p>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`p-2 rounded-xl text-xs flex flex-col gap-0.5 ${
+                        n.read ? "bg-transparent opacity-75" : "bg-surface-2 font-medium"
+                      }`}
+                    >
+                      <span className="font-semibold text-ink">{n.title}</span>
+                      <span className="text-muted">{n.message}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <Button size="md" onClick={onCreateBoard} className="hidden sm:inline-flex">
           <Plus className="h-4 w-4" /> New board

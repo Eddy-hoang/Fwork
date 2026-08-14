@@ -1,6 +1,7 @@
 package com.intern.fwork.controllers;
 
 import com.intern.fwork.dtos.request.AddMemberRequest;
+import com.intern.fwork.dtos.request.CreateBoardRequest;
 import com.intern.fwork.dtos.request.CreateWorkspaceRequest;
 import com.intern.fwork.dtos.request.UpdateWorkspaceRequest;
 import com.intern.fwork.dtos.response.ApiResponse;
@@ -41,7 +42,7 @@ public class WorkspaceController {
         return ApiResponse.success(workspaceService.getById(id));
     }
 
-    @PutMapping("/{id}")
+    @RequestMapping(value = "/{id}", method = {RequestMethod.PUT, RequestMethod.PATCH})
     public ApiResponse<WorkspaceResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateWorkspaceRequest request
@@ -82,5 +83,15 @@ public class WorkspaceController {
     @GetMapping("/{workspaceId}/boards")
     public ApiResponse<List<BoardResponse>> getBoards(@PathVariable UUID workspaceId) {
         return ApiResponse.success(boardService.getBoardsByWorkspaceId(workspaceId));
+    }
+
+    @PostMapping("/{workspaceId}/boards")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<BoardResponse> createBoardInWorkspace(
+            @PathVariable UUID workspaceId,
+            @Valid @RequestBody CreateBoardRequest request
+    ) {
+        request.setWorkspaceId(workspaceId);
+        return ApiResponse.success(boardService.create(request));
     }
 }

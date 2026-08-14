@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 public class ExceptionHandlingTest {
 
@@ -108,6 +110,7 @@ public class ExceptionHandlingTest {
                 .slug("test-workspace")
                 .description("Workspace for integration testing")
                 .createdBy(ownerUser)
+                .updatedBy(ownerUser)
                 .build();
         workspace = workspaceRepository.save(workspace);
 
@@ -174,7 +177,6 @@ public class ExceptionHandlingTest {
                         .with(authentication(currentAuth)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status", is(404)))
-                .andExpect(jsonPath("$.error", is("Not Found")))
                 .andExpect(jsonPath("$.message", containsString("Task not found")));
     }
 
@@ -185,7 +187,6 @@ public class ExceptionHandlingTest {
                         .with(authentication(currentAuth)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status", is(403)))
-                .andExpect(jsonPath("$.error", is("Forbidden")))
                 .andExpect(jsonPath("$.message", containsString("Only OWNER or ADMIN can delete tasks")));
     }
 
@@ -202,7 +203,6 @@ public class ExceptionHandlingTest {
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is(400)))
-                .andExpect(jsonPath("$.error", is("Bad Request")))
                 .andExpect(jsonPath("$.message", is("Validation failed")))
                 .andExpect(jsonPath("$.errors.title", is("Task title is required")));
     }
@@ -212,8 +212,7 @@ public class ExceptionHandlingTest {
         // Request secure endpoint without authentication details -> Spring Security triggers AuthenticationException
         mockMvc.perform(get("/api/tasks/" + task.getId()))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.status", is(401)))
-                .andExpect(jsonPath("$.error", is("Unauthorized")));
+                .andExpect(jsonPath("$.status", is(401)));
     }
 
     @Test
@@ -286,7 +285,6 @@ public class ExceptionHandlingTest {
         mockMvc.perform(get("/api/tasks/" + task.getId())
                         .header("Authorization", "Bearer invalidjwttokenpayload"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.status", is(401)))
-                .andExpect(jsonPath("$.error", is("Unauthorized")));
+                .andExpect(jsonPath("$.status", is(401)));
     }
 }

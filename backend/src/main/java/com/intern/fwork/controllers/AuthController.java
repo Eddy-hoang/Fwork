@@ -42,8 +42,15 @@ public class AuthController {
         return ApiResponse.success(response);
     }
 
-    @PostMapping("/me")
+    @GetMapping("/me")
     public ApiResponse<UserResponse> me(){
+        return ApiResponse.success(
+                authService.getCurrentUser()
+        );
+    }
+
+    @PostMapping("/me")
+    public ApiResponse<UserResponse> mePost(){
         return ApiResponse.success(
                 authService.getCurrentUser()
         );

@@ -32,7 +32,7 @@ const Footer = () => (
             <span className="brand-gradient flex h-9 w-9 items-center justify-center rounded-xl shadow-[var(--shadow-brand)]">
               <Zap className="h-4.5 w-4.5 fill-white text-white" />
             </span>
-            <span className="font-display text-lg font-bold tracking-tight">Flowboard</span>
+            <span className="font-display text-lg font-bold tracking-tight">Fwork</span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">
             The AI-native Kanban that turns goals into shipped work — planning less so your team ships more.
@@ -64,7 +64,7 @@ const Footer = () => (
 
       {/* bottom bar */}
       <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t pt-6 text-sm text-muted sm:flex-row">
-        <span>© {new Date().getFullYear()} Flowboard. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} Fwork. All rights reserved.</span>
         <a href="#" className="flex items-center gap-1.5 transition-colors hover:text-ink">
           <Layers className="h-4 w-4" /> Built with the PERN stack
         </a>

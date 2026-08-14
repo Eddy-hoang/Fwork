@@ -8,7 +8,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "columns")
+@Table(
+    name = "columns",
+    indexes = {
+        @Index(name = "idx_columns_board_id", columnList = "board_id")
+    }
+)
 @org.hibernate.annotations.Check(constraints = "position >= 0")
 @Getter
 @Setter

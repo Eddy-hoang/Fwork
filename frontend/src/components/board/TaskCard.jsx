@@ -1,18 +1,31 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Calendar } from "lucide-react";
+import { Calendar, CheckCircle2, Circle } from "lucide-react";
 import Avatar from "../ui/Avatar";
 import { PriorityTag } from "../ui/Badge";
 import { cn, formatDueDate } from "../../lib/utils";
 
-const TaskCard = ({ task, onClick, overlay = false }) => {
+const isDoneStatus = (status) => {
+  if (!status) return false;
+  const s = status.toLowerCase();
+  return s.includes("done") || s.includes("complete") || s.includes("hoàn thành") || s.includes("finish");
+};
+
+const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: "task", task },
   });
 
   const style = { transform: CSS.Translate.toString(transform), transition };
-  const due = formatDueDate(task.due_date);
+  const due = formatDueDate(task.due_date || task.dueDate);
+  const isDone = isDoneStatus(task.status || task.columnName || task.columnTitle);
+
+  const handleCheckboxClick = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onToggleComplete?.(task);
+  };
 
   return (
     <div
@@ -23,15 +36,41 @@ const TaskCard = ({ task, onClick, overlay = false }) => {
       onClick={() => !isDragging && onClick?.(task)}
       className={cn(
         "group cursor-grab rounded-2xl border border-line bg-surface p-4 active:cursor-grabbing",
-        "shadow-[var(--shadow-card)] transition-shadow duration-200",
+        "shadow-[var(--shadow-card)] transition-all duration-200",
         "hover:shadow-[var(--shadow-soft)]",
+        isDone && "bg-surface/60 opacity-80",
         isDragging && "opacity-40",
         overlay && "rotate-2 cursor-grabbing shadow-[var(--shadow-lift)]"
       )}
     >
-      <PriorityTag priority={task.priority} />
+      <div className="flex items-center justify-between gap-2">
+        <PriorityTag priority={task.priority} />
+        {onToggleComplete && (
+          <button
+            type="button"
+            onClick={handleCheckboxClick}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="z-10 text-faint hover:text-brand-500 transition-colors p-1 -m-1"
+            title={isDone ? "Mark as incomplete" : "Mark as completed"}
+          >
+            {isDone ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 fill-emerald-500/20" />
+            ) : (
+              <Circle className="h-4 w-4 hover:stroke-brand-500" />
+            )}
+          </button>
+        )}
+      </div>
 
-      <p className="mt-2.5 text-[15px] font-semibold leading-snug tracking-tight text-ink">{task.title}</p>
+      <p
+        className={cn(
+          "mt-2.5 text-[15px] font-semibold leading-snug tracking-tight",
+          isDone ? "text-muted line-through" : "text-ink"
+        )}
+      >
+        {task.title}
+      </p>
 
       {task.description && (
         <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted">
@@ -53,7 +92,9 @@ const TaskCard = ({ task, onClick, overlay = false }) => {
           <span
             className={cn(
               "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium tabular",
-              due.overdue ? "bg-priority-urgent/10 text-priority-urgent" : "bg-surface-2 text-muted"
+              due.overdue && !isDone
+                ? "bg-priority-urgent/10 text-priority-urgent"
+                : "bg-surface-2 text-muted"
             )}
           >
             <Calendar className="h-3 w-3" /> {due.label}

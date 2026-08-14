@@ -1,5 +1,5 @@
 {
-  "name": "aikanbanboard",
+  "name": "fwork",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,6 +13,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/vite": "^4.3.1",
     "axios": "^1.17.0",
     "date-fns": "^4.4.0",
@@ -23,6 +24,7 @@
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.17.0",
     "socket.io-client": "^4.8.3",
+    "sockjs-client": "^1.6.1",
     "tailwindcss": "^4.3.1"
   },
   "devDependencies": {

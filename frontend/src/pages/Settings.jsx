@@ -105,7 +105,7 @@ const Settings = () => {
                 <Zap className="h-5 w-5 fill-white text-white" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-ink">Flowboard</p>
+                <p className="text-sm font-semibold text-ink">Fwork</p>
                 <p className="text-xs text-muted">AI-powered Kanban · Light theme</p>
               </div>
             </div>

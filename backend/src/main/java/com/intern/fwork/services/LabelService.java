@@ -17,4 +17,6 @@ public interface LabelService {
 
     void delete(UUID labelId);
 
+    List<LabelResponse> getLabelsCacheData(UUID boardId);
+
 }

@@ -35,9 +35,9 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
         title: task.title || "",
         description: task.description || "",
         priority: task.priority || "medium",
-        due_date: toDateInput(task.due_date),
-        assignee_id: task.assignee_id || "",
-        column_id: task.column_id,
+        due_date: toDateInput(task.due_date || task.dueDate),
+        assignee_id: task.assignee_id || task.assigneeId || (typeof task.assignee === "object" ? task.assignee?.id : task.assignee) || "",
+        column_id: task.column_id || task.columnId,
       });
     } else {
       setForm(empty(defaultColumnId || columns[0]?.id));
@@ -50,16 +50,22 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
     e.preventDefault();
     if (!form.title.trim()) return toast.error("Title is required");
     setSaving(true);
+    const formattedDueDate = form.due_date ? `${form.due_date}T23:59:59` : null;
     const payload = {
       title: form.title.trim(),
       description: form.description.trim() || null,
       priority: form.priority,
-      due_date: form.due_date || null,
+      dueDate: formattedDueDate,
+      due_date: formattedDueDate,
       assignee_id: form.assignee_id || null,
     };
     try {
       if (isEdit) {
         await actions.updateTask(task.id, payload);
+        const prevColId = task.column_id || task.columnId;
+        if (form.column_id && form.column_id !== prevColId && actions.moveTask) {
+          await actions.moveTask(task.id, form.column_id, 0);
+        }
         toast.success("Task updated");
       } else {
         await actions.createTask({ ...payload, column_id: form.column_id });
@@ -105,17 +111,18 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
         <div className="grid grid-cols-2 gap-4">
           <Select label="Assignee" value={form.assignee_id} onChange={set("assignee_id")}>
             <option value="">Unassigned</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
+            {members.map((m) => {
+              const uId = m.userId || m.user_id || m.id;
+              return (
+                <option key={uId} value={uId}>{m.name}</option>
+              );
+            })}
+          </Select>
+          <Select label="Column / Status" value={form.column_id} onChange={set("column_id")}>
+            {columns.map((c) => (
+              <option key={c.id} value={c.id}>{c.title || c.name}</option>
             ))}
           </Select>
-          {!isEdit && (
-            <Select label="Column" value={form.column_id} onChange={set("column_id")}>
-              {columns.map((c) => (
-                <option key={c.id} value={c.id}>{c.title}</option>
-              ))}
-            </Select>
-          )}
         </div>
 
         <div className="flex items-center justify-between gap-2 pt-2">

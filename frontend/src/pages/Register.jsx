@@ -36,7 +36,7 @@ const Register = () => {
           <div className="brand-gradient flex h-10 w-10 items-center justify-center rounded-2xl shadow-[var(--shadow-brand)]">
             <Zap className="h-5 w-5 fill-white text-white" />
           </div>
-          <span className="font-display text-lg font-bold tracking-tight">Flowboard</span>
+          <span className="font-display text-lg font-bold tracking-tight">Fwork</span>
         </Link>
 
         <div className="card rounded-3xl p-8 shadow-[var(--shadow-soft)]">

@@ -16,7 +16,10 @@ public class TaskActivityController {
     private final TaskActivityService taskActivityService;
 
     @GetMapping("/api/tasks/{taskId}/activity")
-    public ApiResponse<List<TaskActivityResponse>> getActivity(@PathVariable UUID taskId) {
-        return ApiResponse.success(taskActivityService.getByTask(taskId));
+    public ApiResponse<org.springframework.data.domain.Page<TaskActivityResponse>> getActivity(
+            @PathVariable UUID taskId,
+            @org.springframework.data.web.PageableDefault(size = 50, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) org.springframework.data.domain.Pageable pageable
+    ) {
+        return ApiResponse.success(taskActivityService.getByTask(taskId, pageable));
     }
 }

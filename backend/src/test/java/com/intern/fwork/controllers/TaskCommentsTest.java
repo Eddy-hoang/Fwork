@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 public class TaskCommentsTest {
 
@@ -126,6 +128,7 @@ public class TaskCommentsTest {
                 .description("Test workspace")
                 .createdBy(ownerUser)
                 .updatedBy(ownerUser)
+                .updatedBy(ownerUser)
                 .build());
 
         workspaceMemberRepository.save(WorkspaceMember.builder()
@@ -207,9 +210,9 @@ public class TaskCommentsTest {
         mockMvc.perform(get("/api/tasks/" + taskA.getId() + "/comments")
                         .with(authentication(currentAuth)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data", hasSize(1)))
-                .andExpect(jsonPath("$.data[0].content", is("First comment by member")))
-                .andExpect(jsonPath("$.data[0].createdBy.email", is("member@fwork.com")));
+                .andExpect(jsonPath("$.data.content", hasSize(1)))
+                .andExpect(jsonPath("$.data.content[0].content", is("First comment by member")))
+                .andExpect(jsonPath("$.data.content[0].createdBy.email", is("member@fwork.com")));
 
         // 5. OWNER can also create a comment
         UUID ownerCommentId = createCommentAs(ownerUser, "Owner comment");
@@ -219,7 +222,7 @@ public class TaskCommentsTest {
         mockMvc.perform(get("/api/tasks/" + taskA.getId() + "/comments")
                         .with(authentication(currentAuth)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data", hasSize(2)));
+                .andExpect(jsonPath("$.data.content", hasSize(2)));
     }
 
     @Test
@@ -288,7 +291,7 @@ public class TaskCommentsTest {
         mockMvc.perform(get("/api/tasks/" + taskA.getId() + "/comments")
                         .with(authentication(currentAuth)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data", hasSize(0)));
+                .andExpect(jsonPath("$.data.content", hasSize(0)));
 
         // Author can delete own comment
         UUID ownCommentId = createCommentAs(memberUser, "My own comment");

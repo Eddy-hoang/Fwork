@@ -26,15 +26,22 @@ const Calendar = () => {
   const byDay = useMemo(() => {
     const map = {};
     tasks.forEach((t) => {
-      if (!t.due_date) return;
-      const key = format(new Date(t.due_date), "yyyy-MM-dd");
-      (map[key] ||= []).push(t);
+      const d = t.due_date || t.dueDate;
+      if (!d) return;
+      try {
+        const key = format(new Date(d), "yyyy-MM-dd");
+        (map[key] ||= []).push(t);
+      } catch (e) {}
     });
     return map;
   }, [tasks]);
 
   const monthCount = useMemo(
-    () => tasks.filter((t) => t.due_date && isSameMonth(new Date(t.due_date), cursor)).length,
+    () =>
+      tasks.filter((t) => {
+        const d = t.due_date || t.dueDate;
+        return d && isSameMonth(new Date(d), cursor);
+      }).length,
     [tasks, cursor]
   );
 

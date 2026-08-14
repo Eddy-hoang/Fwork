@@ -20,4 +20,6 @@ public interface BoardService {
     void delete(UUID id);
 
     List<BoardResponse> getBoardsByWorkspaceId(UUID workspaceId);
+
+    BoardResponse getBoardCacheData(UUID boardId);
 }

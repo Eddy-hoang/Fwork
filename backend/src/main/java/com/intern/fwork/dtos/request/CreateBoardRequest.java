@@ -20,7 +20,6 @@ public class CreateBoardRequest {
 
     private String color;
 
-    @NotNull(message = "Workspace ID is required")
     private UUID workspaceId;
 
 }

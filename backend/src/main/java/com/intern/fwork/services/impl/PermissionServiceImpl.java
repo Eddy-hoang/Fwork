@@ -78,13 +78,38 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
+    public void checkRemoveMember(UUID workspaceId, UUID currentUserId, UUID targetUserId) {
+        WorkspaceMember targetMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found in workspace"));
+
+        if (targetMember.getRole() == WorkspaceRole.OWNER) {
+            throw new ForbiddenOperationException("OWNER cannot be removed from the workspace");
+        }
+
+        WorkspaceMember currentMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, currentUserId)
+                .orElseThrow(() -> new AccessDeniedException("Access Denied"));
+
+        if (!currentUserId.equals(targetUserId)) {
+            if (currentMember.getRole() != WorkspaceRole.OWNER && currentMember.getRole() != WorkspaceRole.ADMIN) {
+                throw new ForbiddenOperationException("Only OWNER or ADMIN can manage workspace members");
+            }
+            if (targetMember.getRole() == WorkspaceRole.ADMIN && currentMember.getRole() == WorkspaceRole.ADMIN) {
+                throw new ForbiddenOperationException("ADMIN cannot remove another ADMIN");
+            }
+        }
+    }
+
+    @Override
     public void checkWorkspaceAccess(UUID workspaceId, UUID userId) {
         checkReadWorkspace(workspaceId, userId);
     }
 
     @Override
     public void checkCreateBoard(UUID workspaceId, UUID userId) {
-        checkReadWorkspace(workspaceId, userId);
+        WorkspaceRole role = getWorkspaceRole(workspaceId, userId);
+        if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
+            throw new ForbiddenOperationException("Only OWNER or ADMIN can create boards");
+        }
     }
 
     @Override

@@ -21,10 +21,11 @@ public class ApiResponse<T> {
 
     private String message;
 
-    // T co the la broad,user,task,....
     private T data;
 
-    private LocalDateTime timestamp;
+    private LocalDateTime localDateTime;
+
+    private Object errors;
 
     public static <T> ApiResponse<T> success(T data){
         return ApiResponse.<T>builder()
@@ -32,7 +33,36 @@ public class ApiResponse<T> {
                 .status(200)
                 .message("Success")
                 .data(data)
-                .timestamp(LocalDateTime.now())
+                .localDateTime(LocalDateTime.now())
+                .build();
+    }
+
+    public static <T> ApiResponse<T> success(T data, String message){
+        return ApiResponse.<T>builder()
+                .success(true)
+                .status(200)
+                .message(message)
+                .data(data)
+                .localDateTime(LocalDateTime.now())
+                .build();
+    }
+
+    public static <T> ApiResponse<T> error(int status, String message){
+        return ApiResponse.<T>builder()
+                .success(false)
+                .status(status)
+                .message(message)
+                .localDateTime(LocalDateTime.now())
+                .build();
+    }
+
+    public static <T> ApiResponse<T> error(int status, String message, Object errors){
+        return ApiResponse.<T>builder()
+                .success(false)
+                .status(status)
+                .message(message)
+                .errors(errors)
+                .localDateTime(LocalDateTime.now())
                 .build();
     }
 }

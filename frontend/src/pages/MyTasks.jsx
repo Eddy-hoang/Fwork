@@ -22,7 +22,13 @@ const MyTasks = () => {
   const [now] = useState(() => Date.now());
 
   const mine = useMemo(
-    () => tasks.filter((t) => t.assignee_id && t.assignee_id === user?.id),
+    () =>
+      tasks.filter((t) => {
+        const aid = t.assignee_id || t.assigneeId || (typeof t.assignee === "object" ? t.assignee?.id : t.assignee);
+        const uid = user?.id || user?.userId;
+        if (!aid || !uid) return false;
+        return String(aid).toLowerCase() === String(uid).toLowerCase();
+      }),
     [tasks, user]
   );
 

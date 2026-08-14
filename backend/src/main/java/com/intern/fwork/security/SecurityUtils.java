@@ -2,6 +2,7 @@ package com.intern.fwork.security;
 
 import com.intern.fwork.entities.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ public class SecurityUtils {
 
         if (authentication == null ||
                 !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw new RuntimeException("User not authenticated");
+            throw new AccessDeniedException("User not authenticated");
         }
 
         return userDetails.getUser();

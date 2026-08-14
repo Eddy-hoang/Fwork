@@ -14,6 +14,10 @@ import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.BoardDashboardService;
 import com.intern.fwork.services.PermissionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +39,10 @@ public class BoardDashboardServiceImpl implements BoardDashboardService {
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
 
+    @Autowired
+    @Lazy
+    private BoardDashboardService self;
+
     @Override
     public BoardDashboardResponse getDashboard(UUID boardId) {
         User currentUser = securityUtils.getCurrentUser();
@@ -45,40 +53,52 @@ public class BoardDashboardServiceImpl implements BoardDashboardService {
 
         permissionService.checkWorkspaceAccess(board.getWorkspace().getId(), currentUser.getId());
 
-        List<Task> tasks = taskRepository.findByBoardId(boardId);
+        return self.getDashboardCacheData(boardId);
+    }
+
+    @Override
+    @Cacheable(value = "dashboard", key = "#boardId")
+    public BoardDashboardResponse getDashboardCacheData(UUID boardId) {
+        Board board = boardRepository.findById(boardId)
+                .filter(b -> !b.isArchived() && !b.getWorkspace().isArchived())
+                .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+
         LocalDateTime now = LocalDateTime.now();
 
-        long totalTasks = tasks.size();
+        long totalTasks = taskRepository.countByColumnBoardIdAndIsArchivedFalse(boardId);
 
         // Tasks by priority (include all enum values even if count = 0)
+        List<Object[]> priorityCounts = taskRepository.countByPriorityForBoard(boardId);
+        Map<Priority, Long> priorityCountsMap = priorityCounts.stream()
+                .collect(Collectors.toMap(
+                        arr -> (Priority) arr[0],
+                        arr -> (Long) arr[1]
+                ));
         Map<Priority, Long> tasksByPriority = Arrays.stream(Priority.values())
                 .collect(Collectors.toMap(
                         p -> p,
-                        p -> tasks.stream().filter(t -> t.getPriority() == p).count()
+                        p -> priorityCountsMap.getOrDefault(p, 0L)
                 ));
 
         // Tasks by column
+        List<Object[]> columnCounts = taskRepository.countByColumnForBoard(boardId);
+        Map<UUID, Long> columnCountsMap = columnCounts.stream()
+                .collect(Collectors.toMap(
+                        arr -> (UUID) arr[0],
+                        arr -> (Long) arr[1]
+                ));
         List<BoardColumn> columns = boardColumnRepository.findByBoardIdOrderByPositionAsc(boardId);
         List<BoardDashboardResponse.ColumnTaskCount> tasksByColumn = columns.stream()
-                .map(col -> {
-                    long count = tasks.stream()
-                            .filter(t -> t.getColumn().getId().equals(col.getId()))
-                            .count();
-                    return BoardDashboardResponse.ColumnTaskCount.builder()
-                            .columnId(col.getId())
-                            .columnName(col.getName())
-                            .taskCount(count)
-                            .build();
-                })
+                .map(col -> BoardDashboardResponse.ColumnTaskCount.builder()
+                        .columnId(col.getId())
+                        .columnName(col.getName())
+                        .taskCount(columnCountsMap.getOrDefault(col.getId(), 0L))
+                        .build())
                 .toList();
 
-        long overdueTasks = tasks.stream()
-                .filter(t -> t.getDueDate() != null && t.getDueDate().isBefore(now))
-                .count();
+        long overdueTasks = taskRepository.countByColumnBoardIdAndIsArchivedFalseAndDueDateIsNotNullAndDueDateBefore(boardId, now);
 
-        long unassignedTasks = tasks.stream()
-                .filter(t -> t.getAssignee() == null)
-                .count();
+        long unassignedTasks = taskRepository.countByColumnBoardIdAndIsArchivedFalseAndAssigneeIsNull(boardId);
 
         return BoardDashboardResponse.builder()
                 .boardId(board.getId())

@@ -108,8 +108,9 @@ public class AuthServiceImpl implements AuthService {
                         .getContext()
                         .getAuthentication();
 
-        CustomUserDetails userDetails =
-                (CustomUserDetails) authentication.getPrincipal();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw new org.springframework.security.access.AccessDeniedException("User not authenticated");
+        }
 
         return userMapper.toResponse(
                 userDetails.getUser()

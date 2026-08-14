@@ -6,4 +6,5 @@ import java.util.UUID;
 
 public interface BoardDashboardService {
     BoardDashboardResponse getDashboard(UUID boardId);
+    BoardDashboardResponse getDashboardCacheData(UUID boardId);
 }

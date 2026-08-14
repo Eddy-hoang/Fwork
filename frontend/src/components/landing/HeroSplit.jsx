@@ -24,7 +24,7 @@ const HeroSplit = () => (
           <span className="text-gradient">AI</span>
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-muted sm:text-lg lg:mx-0">
-          Flowboard turns a one-line goal into a prioritized backlog and keeps
+          Fwork turns a one-line goal into a prioritized backlog and keeps
           your whole team moving in real time — so you plan less and ship more.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">

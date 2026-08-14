@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import {
   Plus,
   LayoutGrid,
@@ -14,19 +15,22 @@ import {
   FolderKanban,
   Crown,
   Share2,
+  Trash2,
 } from "lucide-react";
 import { useBoards } from "../context/BoardsContext";
 import { useAuth } from "../context/AuthContext";
 import { useLayout } from "../components/layout/AppLayout";
 import Topbar from "../components/layout/Topbar";
 import Button from "../components/ui/Button";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { BoardCardSkeleton } from "../components/ui/Skeleton";
 import { cn, relativeTime } from "../lib/utils";
 
 const Dashboard = () => {
-  const { boards, loading } = useBoards();
+  const { boards, loading, remove: removeBoard } = useBoards();
   const { user } = useAuth();
   const { openCreateBoard } = useLayout();
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const stats = useMemo(() => {
     const totalTasks = boards.reduce(
@@ -191,25 +195,37 @@ const Dashboard = () => {
                     {/* color accent strip */}
                     <span
                       className="absolute inset-x-0 top-0 h-1"
-                      style={{ background: b.color || "#2f8159" }}
+                      style={{ background: b.color || "#7c3aed" }}
                     />
                     <div className="mb-3.5 flex items-start justify-between">
                       <div
                         className="flex h-11 w-11 items-center justify-center rounded-2xl"
                         style={{
-                          backgroundColor: `${b.color || "#2f8159"}1f`,
-                          color: b.color || "#2f8159",
+                          backgroundColor: `${b.color || "#7c3aed"}1f`,
+                          color: b.color || "#7c3aed",
                         }}
                       >
                         <LayoutGrid className="h-5 w-5" />
                       </div>
-                      <span className="flex items-center gap-1.5 text-faint transition-all duration-200 group-hover:text-brand-500">
+                      <span className="flex items-center gap-1.5 text-faint">
                         {!b.is_owner && (
                           <span className="rounded-full bg-surface-2 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted">
                             Shared
                           </span>
                         )}
-                        <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDeleteTarget(b);
+                          }}
+                          className="rounded-lg p-1 text-faint hover:bg-priority-urgent/10 hover:text-priority-urgent transition-colors"
+                          title="Delete board"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-500" />
                       </span>
                     </div>
                     <h4 className="font-display text-base font-semibold tracking-tight transition-colors group-hover:text-brand-600">
@@ -237,6 +253,25 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          try {
+            await removeBoard(deleteTarget.id);
+            toast.success(`Board "${deleteTarget.title}" deleted`);
+            setDeleteTarget(null);
+          } catch (err) {
+            toast.error(err.message || "Failed to delete board");
+          }
+        }}
+        title="Delete board?"
+        description={`“${deleteTarget?.title}” and all its columns & tasks will be permanently removed.`}
+        confirmLabel="Delete board"
+        danger
+      />
     </>
   );
 };
@@ -279,12 +314,12 @@ const Legend = ({ color, label, value }) => (
 // violet shade scaled to a bar's relative height — taller = deeper iris
 const barShade = (pct) =>
   pct >= 0.8
-    ? "#1d5038"
+    ? "#6d28d9"
     : pct >= 0.5
-      ? "#2f8159"
+      ? "#7c3aed"
       : pct >= 0.25
-        ? "#57a47b"
-        : "#8bc4a4";
+        ? "#a78bfa"
+        : "#c4b5fd";
 
 // ── Board analytics (vertical pill-bar chart + ranked breakdown) ──────────
 const TasksByBoard = ({ boards, className }) => {
@@ -308,7 +343,7 @@ const TasksByBoard = ({ boards, className }) => {
             {boards.map((b, i) => {
               const count = Number(b.task_count || 0);
               const pct = count / max;
-              const color = b.color || "#2f8159";
+              const color = b.color || "#7c3aed";
               return (
                 <Link
                   key={b.id}
@@ -366,7 +401,7 @@ const TasksByBoard = ({ boards, className }) => {
                   >
                     <span
                       className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: b.color || "#2f8159" }}
+                      style={{ backgroundColor: b.color || "#7c3aed" }}
                     />
                     <span className="flex-1 truncate text-[13px] font-medium text-ink transition-colors group-hover:text-brand-600">
                       {b.title}
@@ -436,7 +471,7 @@ const WorkspaceDonut = ({ owned, shared, boards = [], className }) => {
                 cy="70"
                 r={R}
                 fill="none"
-                stroke="#2f8159"
+                stroke="#7c3aed"
                 strokeWidth={SW}
                 strokeDasharray={`${ownedLen} ${C}`}
               />
@@ -447,7 +482,7 @@ const WorkspaceDonut = ({ owned, shared, boards = [], className }) => {
                 cy="70"
                 r={R}
                 fill="none"
-                stroke="#8bc4a4"
+                stroke="#3b82f6"
                 strokeWidth={SW}
                 strokeDasharray={`${sharedLen} ${C}`}
                 strokeDashoffset={-ownedLen}
@@ -464,8 +499,8 @@ const WorkspaceDonut = ({ owned, shared, boards = [], className }) => {
           </div>
         </div>
         <div className="flex flex-1 flex-col gap-3">
-          <Legend color="#2f8159" label="Owned" value={owned} />
-          <Legend color="#8bc4a4" label="Shared" value={shared} />
+          <Legend color="#7c3aed" label="Owned" value={owned} />
+          <Legend color="#3b82f6" label="Shared" value={shared} />
         </div>
       </div>
 
@@ -512,7 +547,7 @@ const RecentBoards = ({ boards, className }) => (
     </SectionTitle>
     <div className="flex flex-col gap-0.5">
       {boards.map((b) => {
-        const color = b.color || "#2f8159";
+        const color = b.color || "#7c3aed";
         return (
           <Link
             key={b.id}

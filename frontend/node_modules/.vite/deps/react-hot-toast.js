@@ -1,5 +1,6 @@
 "use client";
-import { i as __toESM, t as require_react } from "./react-CZunmVaX.js";
+import { r as __toESM } from "./chunk-B-1-B7_t.js";
+import { t as require_react } from "./react.js";
 //#region node_modules/goober/dist/goober.modern.js
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1), e = { data: "" }, t = (t) => {
 	if ("object" == typeof window) {

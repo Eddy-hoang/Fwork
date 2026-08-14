@@ -5,12 +5,13 @@ import com.intern.fwork.entities.Task;
 import com.intern.fwork.entities.User;
 import com.intern.fwork.enums.TaskActivityAction;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface TaskActivityService {
 
     void log(Task task, User actor, TaskActivityAction action, String detail);
 
-    List<TaskActivityResponse> getByTask(UUID taskId);
+    Page<TaskActivityResponse> getByTask(UUID taskId, Pageable pageable);
 }

@@ -18,13 +18,20 @@ import com.intern.fwork.repositories.WorkspaceRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.PermissionService;
 import com.intern.fwork.services.WorkspaceService;
+import com.intern.fwork.dtos.response.WorkspaceCacheDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +45,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     private final WorkspaceMapper workspaceMapper;
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    @Lazy
+    private WorkspaceService self;
 
     @Override
     public WorkspaceResponse create(CreateWorkspaceRequest request) {
@@ -100,24 +112,30 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     public WorkspaceResponse getById(UUID id) {
         User currentUser = securityUtils.getCurrentUser();
 
-        Workspace workspace = workspaceRepository.findById(id)
-                .filter(w -> !w.isArchived())
-                .orElseThrow(() -> new WorkspaceNotFoundException("Workspace not found"));
-
         permissionService.checkReadWorkspace(id, currentUser.getId());
+
+        WorkspaceCacheDto cacheDto = self.getWorkspaceCacheData(id);
 
         WorkspaceMember membership = workspaceMemberRepository.findByWorkspaceIdAndUserId(id, currentUser.getId())
                 .orElseThrow(() -> new AccessDeniedException("Access Denied"));
 
-        WorkspaceResponse response = workspaceMapper.toResponse(workspace);
-        response.setMemberCount(workspaceMemberRepository.countByWorkspaceId(id));
-        response.setBoardCount(boardRepository.countByWorkspaceIdAndIsArchivedFalse(id));
-        response.setCurrentUserRole(membership.getRole());
-
-        return response;
+        return WorkspaceResponse.builder()
+                .id(cacheDto.getId())
+                .name(cacheDto.getName())
+                .slug(cacheDto.getSlug())
+                .description(cacheDto.getDescription())
+                .memberCount(cacheDto.getMemberCount())
+                .boardCount(cacheDto.getBoardCount())
+                .currentUserRole(membership.getRole())
+                .createdAt(cacheDto.getCreatedAt())
+                .updatedAt(cacheDto.getUpdatedAt())
+                .createdBy(cacheDto.getCreatedBy())
+                .updatedBy(cacheDto.getUpdatedBy())
+                .build();
     }
 
     @Override
+    @CacheEvict(value = "workspace", key = "#id")
     public WorkspaceResponse update(UUID id, UpdateWorkspaceRequest request) {
         User currentUser = securityUtils.getCurrentUser();
 
@@ -145,6 +163,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @CacheEvict(value = "workspace", key = "#id")
     public void delete(UUID id) {
         User currentUser = securityUtils.getCurrentUser();
 
@@ -160,6 +179,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @CacheEvict(value = "workspace", key = "#workspaceId")
     public void addMember(UUID workspaceId, AddMemberRequest request) {
         User currentUser = securityUtils.getCurrentUser();
 
@@ -170,7 +190,17 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         permissionService.checkManageMembers(workspaceId, currentUser.getId());
 
         User targetUser = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("User with email " + request.getEmail() + " not found"));
+                .orElseGet(() -> {
+                    String email = request.getEmail();
+                    String name = email.contains("@") ? email.substring(0, email.indexOf("@")) : email;
+                    User newUser = User.builder()
+                            .email(email)
+                            .name(name)
+                            .passwordHash(passwordEncoder.encode("Fwork@123456"))
+                            .role(com.intern.fwork.enums.Role.USER)
+                            .build();
+                    return userRepository.save(newUser);
+                });
 
         boolean alreadyMember = workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, targetUser.getId());
         if (alreadyMember) {
@@ -187,27 +217,14 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @CacheEvict(value = "workspace", key = "#workspaceId")
     public void removeMember(UUID workspaceId, UUID userId) {
         User currentUser = securityUtils.getCurrentUser();
 
+        permissionService.checkRemoveMember(workspaceId, currentUser.getId(), userId);
+
         WorkspaceMember targetMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found in workspace"));
-
-        if (targetMember.getRole() == WorkspaceRole.OWNER) {
-            throw new ForbiddenOperationException("OWNER cannot be removed from the workspace");
-        }
-
-        WorkspaceMember currentMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, currentUser.getId())
-                .orElseThrow(() -> new AccessDeniedException("Access Denied"));
-
-        if (targetMember.getRole() == WorkspaceRole.ADMIN && currentMember.getRole() == WorkspaceRole.ADMIN) {
-            throw new ForbiddenOperationException("ADMIN cannot remove another ADMIN");
-        }
-
-        // Standard user can remove themselves (leave), or owners/admins can remove members
-        if (!currentUser.getId().equals(userId)) {
-            permissionService.checkManageMembers(workspaceId, currentUser.getId());
-        }
 
         workspaceMemberRepository.delete(targetMember);
     }
@@ -248,5 +265,30 @@ public class WorkspaceServiceImpl implements WorkspaceService {
             count++;
         }
         return slug;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "workspace", key = "#id")
+    public WorkspaceCacheDto getWorkspaceCacheData(UUID id) {
+        Workspace workspace = workspaceRepository.findById(id)
+                .filter(w -> !w.isArchived())
+                .orElseThrow(() -> new WorkspaceNotFoundException("Workspace not found"));
+
+        long memberCount = workspaceMemberRepository.countByWorkspaceId(id);
+        long boardCount = boardRepository.countByWorkspaceIdAndIsArchivedFalse(id);
+
+        return WorkspaceCacheDto.builder()
+                .id(workspace.getId())
+                .name(workspace.getName())
+                .slug(workspace.getSlug())
+                .description(workspace.getDescription())
+                .memberCount(memberCount)
+                .boardCount(boardCount)
+                .createdAt(workspace.getCreatedAt())
+                .updatedAt(workspace.getUpdatedAt())
+                .createdBy(workspace.getCreatedBy() != null ? workspace.getCreatedBy().getId() : null)
+                .updatedBy(workspace.getUpdatedBy() != null ? workspace.getUpdatedBy().getId() : null)
+                .build();
     }
 }

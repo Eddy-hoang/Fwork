@@ -69,7 +69,7 @@ public class TaskController {
         return ApiResponse.success(taskService.move(id, request));
     }
 
-    @PatchMapping("/api/tasks/{id}/assignee")
+    @PatchMapping({"/api/tasks/{id}/assignee", "/api/tasks/{id}/assign"})
     public ApiResponse<TaskResponse> assign(
             @PathVariable UUID id,
             @Valid @RequestBody AssignTaskRequest request

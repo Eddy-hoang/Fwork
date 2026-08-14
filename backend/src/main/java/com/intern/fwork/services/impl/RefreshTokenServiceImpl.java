@@ -6,11 +6,12 @@ import com.intern.fwork.exceptions.ResourceNotFoundException;
 import com.intern.fwork.repositories.RefreshTokenRepository;
 import com.intern.fwork.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,6 +21,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
+
     @Override
     public RefreshToken create(User user) {
         RefreshToken refreshToken =
@@ -27,7 +31,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                         .token(UUID.randomUUID().toString())
                         .user(user)
                         .expiryDate(
-                                Instant.now().plus(30, ChronoUnit.DAYS)
+                                Instant.now().plusMillis(refreshExpiration)
                         )
                         .revoked(false)
                         .build();
@@ -68,8 +72,15 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         refreshTokenRepository.save(refreshToken);
     }
+
     @Override
     public void revokeAll(User user) {
-
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByUser(user);
+        for (RefreshToken token : tokens) {
+            if (!token.isRevoked()) {
+                token.setRevoked(true);
+            }
+        }
+        refreshTokenRepository.saveAll(tokens);
     }
 }

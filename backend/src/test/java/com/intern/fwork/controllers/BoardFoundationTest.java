@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 public class BoardFoundationTest {
 
@@ -125,6 +127,8 @@ public class BoardFoundationTest {
                 .slug("test-workspace")
                 .description("Workspace for integration testing")
                 .createdBy(ownerUser)
+                .updatedBy(ownerUser)
+                .updatedBy(ownerUser)
                 .build();
         workspace = workspaceRepository.save(workspace);
 
@@ -183,6 +187,19 @@ public class BoardFoundationTest {
                 .andReturn().getResponse().getContentAsString();
         UUID ownerBoardId = UUID.fromString(objectMapper.readTree(resOwner).path("data").path("id").asText());
 
+        // OWNER creates second Board -> Expected 201 Created
+        authenticate(ownerUser);
+        createRequest.setTitle("Sprint Board OWNER 2");
+        createRequest.setColor("#444444");
+        String resOwner2 = mockMvc.perform(post("/api/boards")
+                        .with(authentication(currentAuth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andReturn().getResponse().getContentAsString();
+        UUID ownerBoardId2 = UUID.fromString(objectMapper.readTree(resOwner2).path("data").path("id").asText());
+
         // ADMIN creates Board -> Expected 201 Created
         authenticate(adminUser);
         createRequest.setTitle("Sprint Board ADMIN");
@@ -198,20 +215,15 @@ public class BoardFoundationTest {
                 .andReturn().getResponse().getContentAsString();
         UUID adminBoardId = UUID.fromString(objectMapper.readTree(resAdmin).path("data").path("id").asText());
 
-        // MEMBER creates Board -> Expected 201 Created
+        // MEMBER creates Board -> Expected 403 Forbidden
         authenticate(memberUser);
         createRequest.setTitle("Sprint Board MEMBER");
         createRequest.setColor("#333333");
-        String resMember = mockMvc.perform(post("/api/boards")
+        mockMvc.perform(post("/api/boards")
                         .with(authentication(currentAuth))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data.title", is("Sprint Board MEMBER")))
-                .andExpect(jsonPath("$.data.createdBy", is(memberUser.getId().toString())))
-                .andReturn().getResponse().getContentAsString();
-        UUID memberBoardId = UUID.fromString(objectMapper.readTree(resMember).path("data").path("id").asText());
+                .andExpect(status().isForbidden());
 
         // Non-member creates Board -> Expected 403 Forbidden
         authenticate(externalUser);
@@ -226,29 +238,29 @@ public class BoardFoundationTest {
         
         // OWNER gets Board -> Expected 200 OK
         authenticate(ownerUser);
-        mockMvc.perform(get("/api/boards/" + memberBoardId)
+        mockMvc.perform(get("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data.id", is(memberBoardId.toString())));
+                .andExpect(jsonPath("$.data.id", is(ownerBoardId2.toString())));
 
         // ADMIN gets Board -> Expected 200 OK
         authenticate(adminUser);
-        mockMvc.perform(get("/api/boards/" + memberBoardId)
+        mockMvc.perform(get("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
 
         // MEMBER gets Board -> Expected 200 OK
         authenticate(memberUser);
-        mockMvc.perform(get("/api/boards/" + memberBoardId)
+        mockMvc.perform(get("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
 
         // Non-member gets Board -> Expected 403 Forbidden
         authenticate(externalUser);
-        mockMvc.perform(get("/api/boards/" + memberBoardId)
+        mockMvc.perform(get("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth)))
                 .andExpect(status().isForbidden());
 
@@ -262,7 +274,7 @@ public class BoardFoundationTest {
 
         // OWNER updates Board -> Expected 200 OK
         authenticate(ownerUser);
-        mockMvc.perform(put("/api/boards/" + memberBoardId)
+        mockMvc.perform(put("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -274,7 +286,7 @@ public class BoardFoundationTest {
         // ADMIN updates Board -> Expected 200 OK
         authenticate(adminUser);
         updateRequest.setTitle("Updated Title By Admin");
-        mockMvc.perform(put("/api/boards/" + memberBoardId)
+        mockMvc.perform(put("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -285,7 +297,7 @@ public class BoardFoundationTest {
 
         // MEMBER updates Board -> Expected 403 Forbidden
         authenticate(memberUser);
-        mockMvc.perform(put("/api/boards/" + memberBoardId)
+        mockMvc.perform(put("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -293,7 +305,7 @@ public class BoardFoundationTest {
 
         // Non-member updates Board -> Expected 403 Forbidden
         authenticate(externalUser);
-        mockMvc.perform(put("/api/boards/" + memberBoardId)
+        mockMvc.perform(put("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -304,25 +316,25 @@ public class BoardFoundationTest {
         
         // MEMBER deletes Board -> Expected 403 Forbidden
         authenticate(memberUser);
-        mockMvc.perform(delete("/api/boards/" + memberBoardId)
+        mockMvc.perform(delete("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth)))
                 .andExpect(status().isForbidden());
 
         // Non-member deletes Board -> Expected 403 Forbidden
         authenticate(externalUser);
-        mockMvc.perform(delete("/api/boards/" + memberBoardId)
+        mockMvc.perform(delete("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth)))
                 .andExpect(status().isForbidden());
 
         // ADMIN deletes Board -> Expected 200 OK
         authenticate(adminUser);
-        mockMvc.perform(delete("/api/boards/" + memberBoardId)
+        mockMvc.perform(delete("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth)))
                 .andExpect(status().isOk());
 
         // Verify deleted board detail lookup now returns 404 (archived filter)
         authenticate(ownerUser);
-        mockMvc.perform(get("/api/boards/" + memberBoardId)
+        mockMvc.perform(get("/api/boards/" + ownerBoardId2)
                         .with(authentication(currentAuth)))
                 .andExpect(status().isNotFound());
 

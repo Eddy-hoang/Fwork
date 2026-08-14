@@ -15,8 +15,10 @@ import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.CommentService;
 import com.intern.fwork.services.PermissionService;
-import com.intern.fwork.services.TaskActivityService;
+import com.intern.fwork.events.CommentAddedEvent;
+import com.intern.fwork.events.CommentDeletedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +35,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
-    private final TaskActivityService taskActivityService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public CommentResponse create(UUID taskId, CreateCommentRequest request) {
@@ -52,14 +54,13 @@ public class CommentServiceImpl implements CommentService {
                 .build();
 
         CommentResponse response = commentMapper.toResponse(commentRepository.save(comment));
-        taskActivityService.log(task, currentUser, TaskActivityAction.COMMENT_ADDED,
-                "Comment added by " + currentUser.getName());
+        eventPublisher.publishEvent(new CommentAddedEvent(comment, currentUser));
         return response;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentResponse> getCommentsByTask(UUID taskId) {
+    public org.springframework.data.domain.Page<CommentResponse> getCommentsByTask(UUID taskId, org.springframework.data.domain.Pageable pageable) {
         User currentUser = securityUtils.getCurrentUser();
         permissionService.checkCreateComment(taskId, currentUser.getId()); // same as "can access task"
 
@@ -68,9 +69,8 @@ public class CommentServiceImpl implements CommentService {
                         && !t.getColumn().getBoard().getWorkspace().isArchived())
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
 
-        return commentRepository.findByTaskIdOrderByCreatedAtAsc(task.getId()).stream()
-                .map(commentMapper::toResponse)
-                .toList();
+        return commentRepository.findByTaskIdOrderByCreatedAtAsc(task.getId(), pageable)
+                .map(commentMapper::toResponse);
     }
 
     @Override
@@ -96,7 +96,6 @@ public class CommentServiceImpl implements CommentService {
 
         Task task = comment.getTask();
         commentRepository.delete(comment);
-        taskActivityService.log(task, currentUser, TaskActivityAction.COMMENT_DELETED,
-                "Comment deleted by " + currentUser.getName());
+        eventPublisher.publishEvent(new CommentDeletedEvent(task, currentUser));
     }
 }

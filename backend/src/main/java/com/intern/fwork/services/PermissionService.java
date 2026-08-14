@@ -14,6 +14,8 @@ public interface PermissionService {
     void checkDeleteWorkspace(UUID workspaceId, UUID userId);
     
     void checkManageMembers(UUID workspaceId, UUID userId);
+    
+    void checkRemoveMember(UUID workspaceId, UUID currentUserId, UUID targetUserId);
 
     void checkWorkspaceAccess(UUID workspaceId, UUID userId);
     

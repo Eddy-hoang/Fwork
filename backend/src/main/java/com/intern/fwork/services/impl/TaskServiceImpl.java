@@ -26,9 +26,12 @@ import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.repositories.UserRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.PermissionService;
-import com.intern.fwork.services.TaskActivityService;
 import com.intern.fwork.services.TaskService;
+import com.intern.fwork.events.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +57,16 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
-    private final TaskActivityService taskActivityService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    private void evictDashboardCache(UUID boardId) {
+        if (cacheManager.getCache("dashboard") != null) {
+            cacheManager.getCache("dashboard").evict(boardId);
+        }
+    }
 
     @Override
     public TaskResponse create(UUID columnId, CreateTaskRequest request) {
@@ -69,12 +81,16 @@ public class TaskServiceImpl implements TaskService {
 
         permissionService.checkCreateTask(columnId, currentUser.getId());
 
+        int position = request.getPosition() != null
+                ? request.getPosition()
+                : taskRepository.findByColumnIdAndIsArchivedFalseOrderByPositionAsc(columnId).size();
+
         Task task = Task.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .priority(request.getPriority())
+                .priority(request.getPriority() != null ? request.getPriority() : Priority.MEDIUM)
                 .dueDate(request.getDueDate())
-                .position(request.getPosition())
+                .position(position)
                 .column(column)
                 .createdBy(currentUser)
                 .updatedBy(currentUser)
@@ -82,8 +98,10 @@ public class TaskServiceImpl implements TaskService {
                 .build();
 
         TaskResponse response = taskMapper.toResponse(taskRepository.save(task));
-        taskActivityService.log(task, currentUser, TaskActivityAction.TASK_CREATED,
-                "Task '" + task.getTitle() + "' created");
+        eventPublisher.publishEvent(new TaskCreatedEvent(task, currentUser));
+
+        evictDashboardCache(column.getBoard().getId());
+
         return response;
     }
 
@@ -165,8 +183,10 @@ public class TaskServiceImpl implements TaskService {
         task.setUpdatedBy(currentUser);
 
         TaskResponse response = taskMapper.toResponse(taskRepository.save(task));
-        taskActivityService.log(task, currentUser, TaskActivityAction.TASK_UPDATED,
-                "Task updated: title='" + task.getTitle() + "'");
+        eventPublisher.publishEvent(new TaskUpdatedEvent(task, currentUser));
+
+        evictDashboardCache(task.getColumn().getBoard().getId());
+
         return response;
     }
 
@@ -187,6 +207,8 @@ public class TaskServiceImpl implements TaskService {
         task.setArchived(true);
         task.setUpdatedBy(currentUser);
         taskRepository.save(task);
+
+        evictDashboardCache(task.getColumn().getBoard().getId());
     }
 
     @Override
@@ -241,6 +263,10 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
+        evictDashboardCache(task.getColumn().getBoard().getId());
+
+        eventPublisher.publishEvent(new TaskMovedEvent(task, currentUser, sourceColumnId, targetColumnId));
+
         return taskMapper.toResponse(task);
     }
 
@@ -264,12 +290,10 @@ public class TaskServiceImpl implements TaskService {
 
         task.setUpdatedBy(currentUser);
         TaskResponse response = taskMapper.toResponse(taskRepository.save(task));
-        String assigneeDetail = request.getAssigneeId() != null
-                ? "Assigned to userId=" + request.getAssigneeId()
-                : "Unassigned";
-        taskActivityService.log(task, currentUser,
-                request.getAssigneeId() != null ? TaskActivityAction.TASK_ASSIGNED : TaskActivityAction.TASK_UNASSIGNED,
-                assigneeDetail);
+        eventPublisher.publishEvent(new TaskAssignedEvent(task, currentUser, request.getAssigneeId()));
+
+        evictDashboardCache(task.getColumn().getBoard().getId());
+
         return response;
     }
 
@@ -308,8 +332,10 @@ public class TaskServiceImpl implements TaskService {
         task.setLabels(newLabels);
         task.setUpdatedBy(currentUser);
         TaskResponse response = taskMapper.toResponse(taskRepository.save(task));
-        taskActivityService.log(task, currentUser, TaskActivityAction.LABELS_UPDATED,
-                "Labels updated: " + newLabels.stream().map(l -> l.getName()).toList());
+        eventPublisher.publishEvent(new LabelUpdatedEvent(task, currentUser, newLabels));
+
+        evictDashboardCache(task.getColumn().getBoard().getId());
+
         return response;
     }
 

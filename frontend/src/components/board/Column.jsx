@@ -6,16 +6,16 @@ import TaskCard from "./TaskCard";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import { cn, columnAccent } from "../../lib/utils";
 
-const Column = ({ column, tasks, index = 0, onTaskClick, onAddTask, onRename, onDelete, onAiGenerate }) => {
+const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAddTask, onRename, onDelete, onAiGenerate }) => {
   const { setNodeRef, isOver } = useDroppable({ id: column.id, data: { type: "column", column } });
   const accent = columnAccent(index);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [title, setTitle] = useState(column.title);
+  const [title, setTitle] = useState(column.title || column.name || "");
   const menuRef = useRef(null);
 
-  useEffect(() => setTitle(column.title), [column.title]);
+  useEffect(() => setTitle(column.title || column.name || ""), [column.title, column.name]);
   useEffect(() => {
     const onClick = (e) => menuRef.current && !menuRef.current.contains(e.target) && setMenuOpen(false);
     document.addEventListener("mousedown", onClick);
@@ -25,8 +25,8 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onAddTask, onRename, on
   const commitRename = () => {
     setEditing(false);
     const t = title.trim();
-    if (t && t !== column.title) onRename(column.id, t);
-    else setTitle(column.title);
+    if (t && t !== (column.title || column.name)) onRename(column.id, t);
+    else setTitle(column.title || column.name || "");
   };
 
   return (
@@ -95,7 +95,12 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onAddTask, onRename, on
       <div ref={setNodeRef} className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-0.5 pb-1 no-scrollbar">
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={onTaskClick} />
+            <TaskCard
+              key={task.id}
+              task={{ ...task, status: column.title || column.name }}
+              onClick={onTaskClick}
+              onToggleComplete={onToggleComplete}
+            />
           ))}
         </SortableContext>
 

@@ -29,8 +29,11 @@ public class CommentController {
     }
 
     @GetMapping("/api/tasks/{taskId}/comments")
-    public ApiResponse<List<CommentResponse>> getByTask(@PathVariable UUID taskId) {
-        return ApiResponse.success(commentService.getCommentsByTask(taskId));
+    public ApiResponse<org.springframework.data.domain.Page<CommentResponse>> getByTask(
+            @PathVariable UUID taskId,
+            @org.springframework.data.web.PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.ASC) org.springframework.data.domain.Pageable pageable
+    ) {
+        return ApiResponse.success(commentService.getCommentsByTask(taskId, pageable));
     }
 
     @PutMapping("/api/comments/{id}")

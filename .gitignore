@@ -1,7 +1,7 @@
 # Spring Boot
 **/application.properties
 ``
-.claude/
+.env
 
 # Build
 target/

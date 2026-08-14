@@ -36,7 +36,7 @@ const Navbar = () => {
           <div className="brand-gradient flex h-9 w-9 items-center justify-center rounded-xl shadow-[var(--shadow-brand)]">
             <Zap className="h-4.5 w-4.5 fill-white text-white" />
           </div>
-          <span className="font-display text-lg font-bold tracking-tight">Flowboard</span>
+          <span className="font-display text-lg font-bold tracking-tight">Fwork</span>
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
           {navLinks.map(([label, href]) => (

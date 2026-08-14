@@ -11,17 +11,6 @@ import { Plus } from "lucide-react";
 import Column from "./Column";
 import TaskCard from "./TaskCard";
 
-// Compute a fractional position so a task lands at `index` within `siblings`
-// (siblings must already exclude the task being moved, sorted by position).
-const positionForIndex = (siblings, index) => {
-  const prev = index > 0 ? siblings[index - 1]?.position : null;
-  const next = index < siblings.length ? siblings[index]?.position : null;
-  if (prev == null && next == null) return 1000;
-  if (prev == null) return next / 2;
-  if (next == null) return prev + 1000;
-  return (prev + next) / 2;
-};
-
 const KanbanBoard = ({ columns, tasks, actions, onTaskClick, onAddTask, onAiGenerate, onAddColumn }) => {
   const [activeTask, setActiveTask] = useState(null);
 
@@ -32,8 +21,15 @@ const KanbanBoard = ({ columns, tasks, actions, onTaskClick, onAddTask, onAiGene
   const tasksByColumn = useMemo(() => {
     const map = {};
     for (const col of columns) map[col.id] = [];
-    for (const t of tasks) (map[t.column_id] ||= []).push(t);
-    for (const id in map) map[id].sort((a, b) => a.position - b.position);
+    for (const t of tasks) {
+      const colId = t.column_id || t.columnId;
+      if (colId) {
+        (map[colId] ||= []).push(t);
+      }
+    }
+    for (const id in map) {
+      map[id].sort((a, b) => (a.position || 0) - (b.position || 0));
+    }
     return map;
   }, [columns, tasks]);
 
@@ -52,9 +48,17 @@ const KanbanBoard = ({ columns, tasks, actions, onTaskClick, onAddTask, onAiGene
     // Resolve the target column from the drop target.
     const overData = over.data.current;
     let targetColumnId;
-    if (overData?.type === "column") targetColumnId = over.id;
-    else if (overData?.type === "task") targetColumnId = overData.task.column_id;
-    else targetColumnId = activeTaskObj.column_id;
+    if (overData?.type === "column") {
+      targetColumnId = over.id;
+    } else if (overData?.type === "task") {
+      targetColumnId = overData.task.column_id || overData.task.columnId;
+    } else {
+      targetColumnId = activeTaskObj.column_id || activeTaskObj.columnId;
+    }
+
+    if (!targetColumnId) return;
+
+    const currentColumnId = activeTaskObj.column_id || activeTaskObj.columnId;
 
     const siblings = (tasksByColumn[targetColumnId] || []).filter((t) => t.id !== activeId);
 
@@ -66,17 +70,12 @@ const KanbanBoard = ({ columns, tasks, actions, onTaskClick, onAddTask, onAiGene
       index = siblings.length; // dropped on empty column area
     }
 
-    const newPosition = positionForIndex(siblings, index);
-
-    // No-op guard
-    if (
-      activeTaskObj.column_id === targetColumnId &&
-      activeTaskObj.position === newPosition
-    ) {
+    // No-op guard if dropped at exact same position in same column
+    if (currentColumnId === targetColumnId && activeTaskObj.position === index) {
       return;
     }
 
-    actions.moveTask(activeId, targetColumnId, newPosition);
+    actions.moveTask(activeId, targetColumnId, index);
   };
 
   return (
@@ -95,6 +94,7 @@ const KanbanBoard = ({ columns, tasks, actions, onTaskClick, onAddTask, onAiGene
             index={i}
             tasks={tasksByColumn[col.id] || []}
             onTaskClick={onTaskClick}
+            onToggleComplete={actions.toggleTaskComplete}
             onAddTask={onAddTask}
             onAiGenerate={onAiGenerate}
             onRename={actions.renameColumn}

@@ -5,16 +5,23 @@ import com.intern.fwork.dtos.request.UpdateBoardColumnRequest;
 import com.intern.fwork.dtos.response.BoardColumnResponse;
 import com.intern.fwork.entities.Board;
 import com.intern.fwork.entities.BoardColumn;
+import com.intern.fwork.entities.Task;
 import com.intern.fwork.entities.User;
 import com.intern.fwork.exceptions.BoardColumnNotFoundException;
 import com.intern.fwork.exceptions.BoardNotFoundException;
 import com.intern.fwork.mappers.BoardColumnMapper;
 import com.intern.fwork.repositories.BoardColumnRepository;
 import com.intern.fwork.repositories.BoardRepository;
+import com.intern.fwork.repositories.CommentRepository;
+import com.intern.fwork.repositories.TaskActivityRepository;
+import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.BoardColumnService;
 import com.intern.fwork.services.PermissionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +35,24 @@ public class BoardColumnServiceImpl implements BoardColumnService {
 
     private final BoardColumnRepository boardColumnRepository;
     private final BoardRepository boardRepository;
+    private final TaskRepository taskRepository;
+    private final CommentRepository commentRepository;
+    private final TaskActivityRepository taskActivityRepository;
     private final BoardColumnMapper boardColumnMapper;
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
 
+    @Autowired
+    private CacheManager cacheManager;
+
+    private void evictDashboardCache(UUID boardId) {
+        if (cacheManager.getCache("dashboard") != null) {
+            cacheManager.getCache("dashboard").evict(boardId);
+        }
+    }
+
     @Override
+    @CacheEvict(value = "dashboard", key = "#boardId")
     public BoardColumnResponse create(UUID boardId, CreateBoardColumnRequest request) {
         User currentUser = securityUtils.getCurrentUser();
 
@@ -42,9 +62,13 @@ public class BoardColumnServiceImpl implements BoardColumnService {
 
         permissionService.checkCreateColumn(boardId, currentUser.getId());
 
+        int position = request.getPosition() != null
+                ? request.getPosition()
+                : boardColumnRepository.findByBoardIdOrderByPositionAsc(boardId).size();
+
         BoardColumn column = BoardColumn.builder()
                 .name(request.getName())
-                .position(request.getPosition())
+                .position(position)
                 .board(board)
                 .build();
 
@@ -100,9 +124,15 @@ public class BoardColumnServiceImpl implements BoardColumnService {
         permissionService.checkUpdateColumn(id, currentUser.getId());
 
         column.setName(request.getName());
-        column.setPosition(request.getPosition());
+        if (request.getPosition() != null) {
+            column.setPosition(request.getPosition());
+        }
 
-        return boardColumnMapper.toResponse(boardColumnRepository.save(column));
+        BoardColumnResponse response = boardColumnMapper.toResponse(boardColumnRepository.save(column));
+
+        evictDashboardCache(column.getBoard().getId());
+
+        return response;
     }
 
     @Override
@@ -118,6 +148,21 @@ public class BoardColumnServiceImpl implements BoardColumnService {
 
         permissionService.checkDeleteColumn(id, currentUser.getId());
 
+        UUID boardId = column.getBoard().getId();
+
+        // 1. Delete comments, task activities, and labels for all tasks in this column to prevent Foreign Key violations
+        List<Task> tasks = taskRepository.findByColumnId(id);
+        for (Task t : tasks) {
+            commentRepository.deleteByTaskId(t.getId());
+            taskActivityRepository.deleteByTaskId(t.getId());
+            t.getLabels().clear();
+        }
+        taskRepository.saveAll(tasks);
+        taskRepository.deleteAll(tasks);
+
+        // 2. Delete the column
         boardColumnRepository.delete(column);
+
+        evictDashboardCache(boardId);
     }
 }

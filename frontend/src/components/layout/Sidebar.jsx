@@ -6,6 +6,7 @@ import {
 import { useBoards } from "../../context/BoardsContext";
 import { useAuth } from "../../context/AuthContext";
 import Avatar from "../ui/Avatar";
+import WorkspaceSelector from "../workspace/WorkspaceSelector";
 import { cn } from "../../lib/utils";
 
 // Section eyebrow (hidden when collapsed)
@@ -69,7 +70,7 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
         </div>
         {!collapsed && (
           <span className="flex-1 truncate font-display text-[17px] font-bold tracking-tight text-ink">
-            Flowboard
+            Fwork
           </span>
         )}
         {!collapsed && (
@@ -94,6 +95,9 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
           </button>
         </div>
       )}
+
+      {/* Workspace Selector */}
+      <WorkspaceSelector collapsed={collapsed} />
 
       {/* Menu */}
       <SectionLabel collapsed={collapsed}>Menu</SectionLabel>
@@ -130,7 +134,7 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
           !collapsed && <p className="px-3 py-2 text-xs text-faint">No boards yet</p>
         ) : (
           boards.map((b) => {
-            const color = b.color || "#2f8159";
+            const color = b.color || "#7c3aed";
             return (
               <NavLink
                 key={b.id}

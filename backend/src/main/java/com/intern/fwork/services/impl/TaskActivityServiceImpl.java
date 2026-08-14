@@ -43,7 +43,7 @@ public class TaskActivityServiceImpl implements TaskActivityService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TaskActivityResponse> getByTask(UUID taskId) {
+    public org.springframework.data.domain.Page<TaskActivityResponse> getByTask(UUID taskId, org.springframework.data.domain.Pageable pageable) {
         User currentUser = securityUtils.getCurrentUser();
 
         Task task = taskRepository.findById(taskId)
@@ -54,8 +54,7 @@ public class TaskActivityServiceImpl implements TaskActivityService {
         permissionService.checkWorkspaceAccess(
                 task.getColumn().getBoard().getWorkspace().getId(), currentUser.getId());
 
-        return taskActivityRepository.findByTaskIdOrderByCreatedAtDesc(taskId).stream()
-                .map(taskActivityMapper::toResponse)
-                .toList();
+        return taskActivityRepository.findByTaskIdOrderByCreatedAtDesc(taskId, pageable)
+                .map(taskActivityMapper::toResponse);
     }
 }

@@ -15,7 +15,6 @@ public class CreateBoardColumnRequest {
     @Size(max = 255, message = "Column name must not exceed 255 characters")
     private String name;
 
-    @NotNull(message = "Position is required")
     @Min(value = 0, message = "Position must be >= 0")
     private Integer position;
 

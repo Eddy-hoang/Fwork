@@ -1,23 +1,39 @@
 import { useState, useEffect } from "react";
-import { boardApi } from "../lib/api";
+import api, { boardApi, columnApi, workspaceApi } from "../lib/api";
 import { useBoards } from "../context/BoardsContext";
 
 /**
  * Aggregates every board the user can see into a single flat list of tasks
  * (each tagged with its board + status) and a de-duplicated member directory.
- * Built entirely from existing endpoints — one boardApi.get() per board.
  */
 export const useWorkspace = () => {
-  const { boards, loading: boardsLoading } = useBoards();
+  const {
+    boards,
+    workspaces,
+    currentWorkspace,
+    setCurrentWorkspace,
+    refreshWorkspaces,
+    loading: boardsLoading,
+  } = useBoards();
+
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchMembers = async () => {
+    if (!currentWorkspace?.id) return;
+    try {
+      const res = await workspaceApi.getMembers(currentWorkspace.id);
+      if (Array.isArray(res)) setMembers(res);
+    } catch (e) {
+      console.error("Failed to fetch workspace members", e);
+    }
+  };
+
   useEffect(() => {
     if (boardsLoading) return;
-    if (!boards.length) {
+    if (!boards || !boards.length) {
       setTasks([]);
-      setMembers([]);
       setLoading(false);
       return;
     }
@@ -25,39 +41,54 @@ export const useWorkspace = () => {
     let cancelled = false;
     setLoading(true);
 
-    Promise.all(boards.map((b) => boardApi.get(b.id).catch(() => null))).then((results) => {
+    Promise.all(
+      boards.map(async (b) => {
+        try {
+          const [colsRes, tasksRes] = await Promise.all([
+            columnApi.list(b.id).catch(() => []),
+            api.get(`/boards/${b.id}/tasks`).catch(() => []),
+          ]);
+
+          const board = b;
+          const rawCols = Array.isArray(colsRes) ? colsRes : (colsRes?.data || []);
+          const rawTasks = Array.isArray(tasksRes) ? tasksRes : (tasksRes?.data || []);
+
+          const colTitleMap = {};
+          rawCols.forEach((c) => {
+            const cId = c.id;
+            const cTitle = c.title || c.name || "Untitled";
+            if (cId) colTitleMap[cId] = cTitle;
+          });
+
+          const boardTasks = rawTasks.map((t) => {
+            const colId = t.column_id || t.columnId;
+            const assigneeId = t.assignee_id || t.assigneeId || (typeof t.assignee === "object" ? t.assignee?.id : t.assignee);
+            const dueDate = t.due_date || t.dueDate;
+            return {
+              ...t,
+              board_id: board.id,
+              board_title: board.title,
+              board_color: board.color,
+              column_id: colId,
+              columnId: colId,
+              assignee_id: assigneeId,
+              assigneeId: assigneeId,
+              due_date: dueDate,
+              dueDate: dueDate,
+              status: colTitleMap[colId] || "",
+            };
+          });
+
+          return boardTasks;
+        } catch (e) {
+          console.error(`Error fetching data for board ${b.id}:`, e);
+          return [];
+        }
+      })
+    ).then((results) => {
       if (cancelled) return;
-      const allTasks = [];
-      const memberMap = new Map();
-
-      results.forEach((res, i) => {
-        if (!res) return;
-        const board = res.board || boards[i];
-        const colTitle = {};
-        (res.columns || []).forEach((c) => {
-          colTitle[c.id] = c.title;
-        });
-        (res.tasks || []).forEach((t) =>
-          allTasks.push({
-            ...t,
-            board_id: board.id,
-            board_title: board.title,
-            board_color: board.color,
-            status: colTitle[t.column_id] || "",
-          })
-        );
-        (res.members || []).forEach((m) => {
-          const existing = memberMap.get(m.id);
-          if (existing) {
-            if (!existing.boards.includes(board.title)) existing.boards.push(board.title);
-          } else {
-            memberMap.set(m.id, { ...m, boards: [board.title] });
-          }
-        });
-      });
-
+      const allTasks = results.flat().filter(Boolean);
       setTasks(allTasks);
-      setMembers([...memberMap.values()]);
       setLoading(false);
     });
 
@@ -66,5 +97,22 @@ export const useWorkspace = () => {
     };
   }, [boards, boardsLoading]);
 
-  return { tasks, members, boards, loading: loading || boardsLoading };
+  // Fetch workspace members when currentWorkspace changes
+  useEffect(() => {
+    if (currentWorkspace?.id) {
+      fetchMembers();
+    }
+  }, [currentWorkspace?.id]);
+
+  return {
+    tasks,
+    members,
+    boards,
+    workspaces,
+    currentWorkspace,
+    setCurrentWorkspace,
+    refreshWorkspaces,
+    refreshMembers: fetchMembers,
+    loading: loading || boardsLoading,
+  };
 };

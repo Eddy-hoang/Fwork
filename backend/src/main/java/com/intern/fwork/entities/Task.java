@@ -7,7 +7,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tasks")
+@Table(
+    name = "tasks",
+    indexes = {
+        @Index(name = "idx_tasks_column_id", columnList = "column_id"),
+        @Index(name = "idx_tasks_assignee_id", columnList = "assignee_id"),
+        @Index(name = "idx_tasks_due_date", columnList = "due_date")
+    }
+)
 @org.hibernate.annotations.Check(constraints = "position >= 0")
 @Getter
 @Setter
@@ -57,7 +64,11 @@ public class Task {
     @JoinTable(
         name = "task_labels",
         joinColumns = @JoinColumn(name = "task_id"),
-        inverseJoinColumns = @JoinColumn(name = "label_id")
+        inverseJoinColumns = @JoinColumn(name = "label_id"),
+        indexes = {
+            @Index(name = "idx_task_labels_task_id", columnList = "task_id"),
+            @Index(name = "idx_task_labels_label_id", columnList = "label_id")
+        }
     )
     @Builder.Default
     private java.util.Set<Label> labels = new java.util.HashSet<>();

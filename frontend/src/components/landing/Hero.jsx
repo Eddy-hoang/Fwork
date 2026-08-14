@@ -108,7 +108,7 @@ const Hero = () => (
             Plan smarter, ship faster with AI
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-white/80 sm:text-lg">
-            Flowboard turns a one-line goal into a prioritized backlog and keeps
+            Fwork turns a one-line goal into a prioritized backlog and keeps
             your whole team moving in real time — so you plan less and ship
             more.
           </p>
@@ -178,7 +178,7 @@ const Hero = () => (
                 <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
               </span>
               <span className="ml-2 text-xs font-medium text-muted">
-                Flowboard · Sprint 14
+                Fwork · Sprint 14
               </span>
               <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> Live

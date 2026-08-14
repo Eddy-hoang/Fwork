@@ -48,7 +48,7 @@ const AISpotlight = () => (
             AI that does the busywork
           </h2>
           <p className="mt-4 max-w-md leading-relaxed text-white/80">
-            Stop staring at an empty board. Flowboard's AI plans, breaks down
+            Stop staring at an empty board. Fwork's AI plans, breaks down
             and reports on your work so you can focus on shipping.
           </p>
           <ul className="mt-7 space-y-3.5">

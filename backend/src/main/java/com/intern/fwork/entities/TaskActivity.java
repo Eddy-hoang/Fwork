@@ -8,7 +8,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "task_activities")
+@Table(
+    name = "task_activities",
+    indexes = {
+        @Index(name = "idx_task_activities_task_id", columnList = "task_id")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor

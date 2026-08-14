@@ -11,6 +11,9 @@ import java.util.UUID;
     name = "workspace_members",
     uniqueConstraints = {
         @UniqueConstraint(columnNames = {"workspace_id", "user_id"})
+    },
+    indexes = {
+        @Index(name = "idx_workspace_members_user_id", columnList = "user_id")
     }
 )
 @Getter

@@ -26,4 +26,6 @@ public interface WorkspaceService {
     void removeMember(UUID workspaceId, UUID userId);
 
     List<WorkspaceMemberResponse> getMembers(UUID workspaceId);
+
+    com.intern.fwork.dtos.response.WorkspaceCacheDto getWorkspaceCacheData(UUID id);
 }

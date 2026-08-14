@@ -10,8 +10,11 @@ export const PRIORITIES = [
   { value: "urgent", label: "Urgent", color: "var(--color-priority-urgent)" },
 ];
 
-export const priorityMeta = (value) =>
-  PRIORITIES.find((p) => p.value === value) || PRIORITIES[1];
+export const priorityMeta = (value) => {
+  if (!value) return PRIORITIES[1];
+  const val = String(value).toLowerCase();
+  return PRIORITIES.find((p) => p.value === val) || PRIORITIES[1];
+};
 
 // Pastel accents assigned to columns by index (Linear/Notion-style boards).
 const COLUMN_ACCENTS = [
@@ -26,19 +29,21 @@ const COLUMN_ACCENTS = [
 export const columnAccent = (index = 0) =>
   COLUMN_ACCENTS[((index % COLUMN_ACCENTS.length) + COLUMN_ACCENTS.length) % COLUMN_ACCENTS.length];
 
-export const initials = (name = "") =>
-  name
+export const initials = (name) =>
+  String(name || "")
     .trim()
     .split(/\s+/)
+    .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase())
     .join("") || "?";
 
 /** Deterministic avatar color from a string id — earthy palette to match the green theme. */
-export const colorFromId = (id = "") => {
+export const colorFromId = (id) => {
+  const str = String(id || "");
   const palette = ["#2f8159", "#2c9c8f", "#6f9b54", "#5f7da6", "#c26a45", "#9a7b3c", "#a05d7d"];
   let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
   return palette[Math.abs(hash) % palette.length];
 };
 

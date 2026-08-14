@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Sparkles, FileText, Users, Activity, Search, ChevronLeft } from "lucide-react";
+import { Sparkles, FileText, Users, Activity, Search, ChevronLeft, Trash2 } from "lucide-react";
 import { useBoard } from "../hooks/useBoard";
+import { useBoards } from "../context/BoardsContext";
 import { useLayout } from "../components/layout/AppLayout";
 import { aiApi } from "../lib/api";
 import { PRIORITIES } from "../lib/utils";
@@ -13,6 +14,7 @@ import { FilterSelect } from "../components/ui/Input";
 import { AvatarStack } from "../components/ui/Avatar";
 import { ColumnSkeleton } from "../components/ui/Skeleton";
 import PromptDialog from "../components/ui/PromptDialog";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import KanbanBoard from "../components/board/KanbanBoard";
 import TaskModal from "../components/board/TaskModal";
 import MembersModal from "../components/board/MembersModal";
@@ -22,7 +24,9 @@ import ActivityFeed from "../components/ActivityFeed";
 
 const BoardPage = () => {
   const { boardId } = useParams();
+  const navigate = useNavigate();
   const { openCreateBoard } = useLayout();
+  const { remove: removeBoard } = useBoards();
   const b = useBoard(boardId);
 
   const [taskModal, setTaskModal] = useState({ open: false, task: null, columnId: null });
@@ -31,6 +35,7 @@ const BoardPage = () => {
   const [membersOpen, setMembersOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [addColumnOpen, setAddColumnOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const [filterPriority, setFilterPriority] = useState("");
   const [filterAssignee, setFilterAssignee] = useState("");
@@ -39,7 +44,7 @@ const BoardPage = () => {
   const filteredTasks = useMemo(() => {
     return b.tasks.filter((t) => {
       if (filterPriority && t.priority !== filterPriority) return false;
-      if (filterAssignee && t.assignee_id !== filterAssignee) return false;
+      if (filterAssignee && (t.assignee_id || t.assigneeId) !== filterAssignee) return false;
       if (search) {
         const q = search.toLowerCase();
         if (!t.title.toLowerCase().includes(q) && !(t.description || "").toLowerCase().includes(q))
@@ -54,7 +59,7 @@ const BoardPage = () => {
       const subtasks = await aiApi.breakdown(boardId, { taskId: task.id });
       for (const s of subtasks) {
         await b.createTask({
-          column_id: task.column_id,
+          column_id: task.column_id || task.columnId,
           title: s.title,
           description: s.description,
           priority: s.priority,
@@ -78,6 +83,16 @@ const BoardPage = () => {
     );
   }
 
+  const handleDeleteBoard = async () => {
+    try {
+      await removeBoard(boardId);
+      toast.success("Board deleted");
+      navigate("/dashboard");
+    } catch (err) {
+      toast.error(err.message || "Failed to delete board");
+    }
+  };
+
   const actions = (
     <div className="flex items-center gap-2">
       {b.presence.length > 0 && (
@@ -97,6 +112,15 @@ const BoardPage = () => {
       </Button>
       <Button size="sm" onClick={() => setAiGen({ open: true, columnId: b.columns[0]?.id })}>
         <Sparkles className="h-4 w-4" /> <span className="hidden lg:inline">AI tasks</span>
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => setConfirmDeleteOpen(true)}
+        title="Delete board"
+        className="text-priority-urgent hover:bg-priority-urgent/10 hover:text-priority-urgent"
+      >
+        <Trash2 className="h-4 w-4" />
       </Button>
     </div>
   );
@@ -141,7 +165,10 @@ const BoardPage = () => {
         </FilterSelect>
         <FilterSelect value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)}>
           <option value="">All assignees</option>
-          {b.members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+          {b.members.map((m) => {
+            const uId = m.userId || m.user_id || m.id;
+            return <option key={uId} value={uId}>{m.name}</option>;
+          })}
         </FilterSelect>
         {(filterPriority || filterAssignee || search) && (
           <button
@@ -167,7 +194,7 @@ const BoardPage = () => {
             columns={b.columns}
             tasks={filteredTasks}
             actions={b}
-            onTaskClick={(task) => setTaskModal({ open: true, task, columnId: task.column_id })}
+            onTaskClick={(task) => setTaskModal({ open: true, task, columnId: task.column_id || task.columnId })}
             onAddTask={(columnId) => setTaskModal({ open: true, task: null, columnId })}
             onAiGenerate={(columnId) => setAiGen({ open: true, columnId })}
             onAddColumn={() => setAddColumnOpen(true)}
@@ -217,6 +244,15 @@ const BoardPage = () => {
           b.addColumn(name);
           setAddColumnOpen(false);
         }}
+      />
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        onConfirm={handleDeleteBoard}
+        title="Delete board?"
+        description={`“${b.board?.title || "This board"}” and all its columns & tasks will be permanently removed.`}
+        confirmLabel="Delete board"
+        danger
       />
     </>
   );

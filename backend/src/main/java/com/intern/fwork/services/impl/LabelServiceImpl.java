@@ -18,6 +18,11 @@ import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.LabelService;
 import com.intern.fwork.services.PermissionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +41,15 @@ public class LabelServiceImpl implements LabelService {
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
 
+    @Autowired
+    @Lazy
+    private LabelService self;
+
+    @Autowired
+    private CacheManager cacheManager;
+
     @Override
+    @CacheEvict(value = "labels", key = "#boardId")
     public LabelResponse create(UUID boardId, CreateLabelRequest request) {
         User currentUser = securityUtils.getCurrentUser();
         permissionService.checkManageLabels(boardId, currentUser.getId());
@@ -68,9 +81,7 @@ public class LabelServiceImpl implements LabelService {
 
         permissionService.checkWorkspaceAccess(board.getWorkspace().getId(), currentUser.getId());
 
-        return labelRepository.findByBoardId(boardId).stream()
-                .map(labelMapper::toResponse)
-                .toList();
+        return self.getLabelsCacheData(boardId);
     }
 
     @Override
@@ -92,7 +103,13 @@ public class LabelServiceImpl implements LabelService {
         label.setName(request.getName());
         label.setColor(request.getColor());
 
-        return labelMapper.toResponse(labelRepository.save(label));
+        LabelResponse response = labelMapper.toResponse(labelRepository.save(label));
+
+        if (cacheManager.getCache("labels") != null) {
+            cacheManager.getCache("labels").evict(label.getBoard().getId());
+        }
+
+        return response;
     }
 
     @Override
@@ -114,6 +131,20 @@ public class LabelServiceImpl implements LabelService {
             taskRepository.save(task);
         }
 
+        UUID boardId = label.getBoard().getId();
         labelRepository.delete(label);
+
+        if (cacheManager.getCache("labels") != null) {
+            cacheManager.getCache("labels").evict(boardId);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "labels", key = "#boardId")
+    public List<LabelResponse> getLabelsCacheData(UUID boardId) {
+        return labelRepository.findByBoardId(boardId).stream()
+                .map(labelMapper::toResponse)
+                .toList();
     }
 }

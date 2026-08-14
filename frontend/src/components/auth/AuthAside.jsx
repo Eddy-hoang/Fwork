@@ -43,7 +43,7 @@ const AuthAside = ({
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-inset ring-white/20">
           <Zap className="h-4.5 w-4.5 fill-white text-white" />
         </span>
-        <span className="font-display text-lg font-bold tracking-tight">Flowboard</span>
+        <span className="font-display text-lg font-bold tracking-tight">Fwork</span>
       </Link>
 
       <div className="relative z-10 flex w-full flex-col items-center justify-center px-8 text-white">
