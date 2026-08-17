@@ -86,15 +86,7 @@ const Login = () => {
               >
                 Log in
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                className="w-full"
-                onClick={fillDemo}
-              >
-                Use demo account
-              </Button>
+              
             </form>
           </div>
 

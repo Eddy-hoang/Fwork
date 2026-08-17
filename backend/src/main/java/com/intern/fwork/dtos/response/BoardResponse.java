@@ -24,6 +24,18 @@ public class BoardResponse {
     private UUID createdBy;
     private UUID updatedBy;
 
+    @JsonProperty("created_at")
     private LocalDateTime createdAt;
+
+    @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+
+    @JsonProperty("task_count")
+    private long taskCount;
+
+    @JsonProperty("member_count")
+    private long memberCount;
+
+    @JsonProperty("is_owner")
+    private boolean isOwner;
 }

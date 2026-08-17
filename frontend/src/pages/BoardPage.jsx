@@ -212,6 +212,7 @@ const BoardPage = () => {
         members={b.members}
         actions={b}
         onBreakdown={handleBreakdown}
+        boardId={boardId}
       />
       <AIGenerateModal
         open={aiGen.open}

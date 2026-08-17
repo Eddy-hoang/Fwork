@@ -65,9 +65,6 @@ const Footer = () => (
       {/* bottom bar */}
       <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t pt-6 text-sm text-muted sm:flex-row">
         <span>© {new Date().getFullYear()} Fwork. All rights reserved.</span>
-        <a href="#" className="flex items-center gap-1.5 transition-colors hover:text-ink">
-          <Layers className="h-4 w-4" /> Built with the PERN stack
-        </a>
       </div>
     </div>
   </footer>
