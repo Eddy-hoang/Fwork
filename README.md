@@ -1,6 +1,6 @@
 # ⚡ Fwork — Enterprise Real-time Kanban Collaboration Platform
 
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](file:///d:/Fwork/PROJECT_REPORT.md)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](./PROJECT_REPORT.md)
 [![Java Version](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-green.svg)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-19.2-blue.svg)](https://react.dev/)
@@ -22,6 +22,7 @@
 6. [Hướng dẫn Khởi chạy (Quick Start)](#-hướng-dẫn-khởi-chạy-quick-start)
 7. [Tài liệu API & Swagger UI](#-tài-liệu-api--swagger-ui)
 8. [Kiểm thử & Đảm bảo Chất lượng](#-kiểm-thử--đảm-bảo-chất-lượng)
+9. [Tài liệu & Sơ đồ Thiết kế](#-tài-liệu--sơ-đồ-thiết-kế)
 
 ---
 
@@ -42,7 +43,7 @@
 - Phân rã nhiệm vụ phức tạp (`AI Breakdown`) thành các checklist nhỏ gọn, ưu tiên rõ ràng.
 
 ### 🛡️ 4. Phân quyền Trung tâm & Bảo mật Nâng cao (RBAC & Security)
-- Hệ thống phân quyền 3 cấp độ: `OWNER`, `ADMIN`, `MEMBER` qua lớp dịch vụ tập trung [PermissionService](file:///d:/Fwork/backend/src/main/java/com/intern/fwork/services/PermissionService.java).
+- Hệ thống phân quyền 3 cấp độ: `OWNER`, `ADMIN`, `MEMBER` qua lớp dịch vụ tập trung [PermissionService](./backend/src/main/java/com/intern/fwork/services/PermissionService.java).
 - Mã hóa Token Lời mời Workspace bằng băm **SHA-256**, tự động hết hạn sau 7 ngày.
 - Nhật ký Kiểm toán Độc lập (**Security Audit Logging**) lưu trữ các hành vi nhạy cảm (Login, Đổi role, Transfer Ownership) với giao dịch `Propagation.REQUIRES_NEW`.
 
@@ -244,6 +245,294 @@ Dự án đạt tỷ lệ kiểm thử thành công tuyệt đối trên bộ 54
 
 ---
 
-## 📄 License
+## 📐 Tài liệu & Sơ đồ Thiết kế (UML Diagrams)
 
-Dự án được phát hành theo giấy phép **MIT License**. Toàn bộ mã nguồn sẵn sàng 100% để triển khai Production hoặc đóng gói Docker/Kubernetes.
+Để phục vụ cho báo cáo đồ án và hiểu cấu trúc hệ thống, dưới đây là các sơ đồ UML được thiết kế và vẽ trực tiếp bằng công cụ **Mermaid** (được hiển thị trực quan trực tiếp trên trình xem Markdown):
+
+### 📊 1. Sơ đồ lớp chi tiết (Class Diagram)
+Mô tả cấu trúc thực thể, thuộc tính và mối quan hệ quan hệ của cơ sở dữ liệu hệ thống (JPA Entities):
+
+```mermaid
+classDiagram
+    direction TB
+    
+    class User {
+        +UUID id
+        +String name
+        +String email
+        +String passwordHash
+        +String avatar
+        +Role role
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+
+    class Workspace {
+        +UUID id
+        +String name
+        +String slug
+        +String description
+        +boolean isArchived
+        +User createdBy
+        +User updatedBy
+        +List~WorkspaceMember~ members
+        +List~Board~ boards
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+
+    class WorkspaceMember {
+        +UUID id
+        +Workspace workspace
+        +User user
+        +WorkspaceRole role
+        +LocalDateTime joinedAt
+    }
+
+    class Board {
+        +UUID id
+        +String title
+        +String description
+        +String color
+        +Integer position
+        +boolean isArchived
+        +User createdBy
+        +User updatedBy
+        +Workspace workspace
+        +List~BoardColumn~ columns
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+
+    class BoardColumn {
+        +UUID id
+        +String name
+        +Integer position
+        +Board board
+        +List~Task~ tasks
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+
+    class Task {
+        +UUID id
+        +String title
+        +String description
+        +Priority priority
+        +LocalDateTime dueDate
+        +Integer position
+        +BoardColumn column
+        +User assignee
+        +User createdBy
+        +User updatedBy
+        +Set~Label~ labels
+        +boolean isArchived
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+
+    class Label {
+        +UUID id
+        +String name
+        +String color
+        +Board board
+        +Set~Task~ tasks
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+
+    class Comment {
+        +UUID id
+        +String content
+        +Task task
+        +User createdBy
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+
+    %% Relationships
+    Workspace "1" *-- "many" WorkspaceMember : contains
+    Workspace "1" *-- "many" Board : contains
+    WorkspaceMember "many" --> "1" User : maps to
+    
+    Board "1" *-- "many" BoardColumn : contains
+    Board "1" *-- "many" Label : owns
+    BoardColumn "1" *-- "many" Task : contains
+    
+    Task "many" o-- "many" Label : categorized by
+    Task "1" *-- "many" Comment : has
+    
+    %% User ownership and assignments
+    Workspace "many" --> "1" User : created_by
+    Board "many" --> "1" User : created_by
+    Task "many" --> "1" User : created_by
+    Task "many" --> "1" User : assignee
+    Comment "many" --> "1" User : created_by
+```
+
+---
+
+### 🎯 2. Sơ đồ Use Case (Use Case Diagram)
+Thể hiện các vai trò của người dùng (Khách, Thành viên, Admin/Owner) tương tác với các khối chức năng chính:
+
+```mermaid
+flowchart LR
+    Guest["Guest (Khách)"]
+    Member["Workspace Member"]
+    Admin["Workspace Admin / Owner"]
+
+    subgraph System ["Kanban Workspace System"]
+        ucRegister(["Đăng ký tài khoản"])
+        ucLogin(["Đăng nhập"])
+        ucCreateWS(["Tạo Workspace"])
+        ucManageWS(["Cấu hình Workspace"])
+        ucInviteMember(["Mời thành viên"])
+        ucDeleteWS(["Xóa Workspace"])
+        ucCreateBoard(["Tạo Bảng công việc"])
+        ucManageBoard(["Quản lý Bảng & Cột"])
+        ucDeleteBoard(["Xóa Bảng"])
+        ucCreateTask(["Tạo thẻ Công việc"])
+        ucEditTask(["Chỉnh sửa Task"])
+        ucMoveTask(["Kéo thả di chuyển Task"])
+        ucAssignTask(["Giao việc cho thành viên"])
+        ucLabelTask(["Gán nhãn dán"])
+        ucDeleteTask(["Xóa Task"])
+        ucAIGenTasks(["AI tự sinh Task từ Mục tiêu"])
+        ucAIBreakdown(["AI tự phân rã Task"])
+        ucAISummary(["AI Tóm tắt bảng"])
+        ucAddComment(["Bình luận Task"])
+        ucDeleteComment(["Xóa bình luận"])
+        ucViewNotify(["Xem thông báo"])
+    end
+
+    Guest --> ucRegister
+    Guest --> ucLogin
+
+    Member --> ucCreateWS
+    Member --> ucCreateBoard
+    Member --> ucManageBoard
+    Member --> ucDeleteBoard
+    Member --> ucCreateTask
+    Member --> ucEditTask
+    Member --> ucMoveTask
+    Member --> ucAssignTask
+    Member --> ucLabelTask
+    Member --> ucDeleteTask
+    Member --> ucAIGenTasks
+    Member --> ucAIBreakdown
+    Member --> ucAISummary
+    Member --> ucAddComment
+    Member --> ucDeleteComment
+    Member --> ucViewNotify
+
+    Admin --> ucManageWS
+    Admin --> ucInviteMember
+    Admin --> ucDeleteWS
+
+    Admin -.->|Kế thừa quyền| Member
+```
+
+---
+
+### 🔄 3. Sơ đồ hoạt động (Activity Diagram - Drag & Drop Task)
+Mô tả quy trình nghiệp vụ kéo thả cập nhật trạng thái công việc trên bảng Kanban:
+
+```mermaid
+flowchart TD
+    Start([● Bắt đầu]) --> Drag[Người dùng kéo thẻ công việc]
+    Drag --> Drop[Thả thẻ vào cột hoặc vị trí mới]
+    Drop --> GetUserRole{Hệ thống kiểm tra quyền}
+    
+    GetUserRole -->|Không có quyền| Reject[Từ chối di chuyển]
+    GetUserRole -->|Có quyền Member/Admin/Owner| Accept[Chấp nhận di chuyển]
+    
+    Reject --> RevertUI[Trả thẻ công việc về vị trí cũ trên UI]
+    RevertUI --> End1([● Kết thúc])
+    
+    Accept --> UpdateDB[Lưu ColumnID và Position mới vào Database]
+    UpdateDB --> CommitTx{Lưu thành công?}
+    
+    CommitTx -->|Không| ShowErr[Hiển thị thông báo lỗi hệ thống]
+    ShowErr --> RevertUI
+    
+    CommitTx -->|Có| PubEvent[Phát sự kiện TaskMovedEvent]
+    PubEvent --> WSBroadcast[WebSocket phát thông báo TASK_MOVED]
+    
+    WSBroadcast --> SyncOthers[Đồng bộ vị trí mới lên các Client khác]
+    SyncOthers --> UpdateMyUI[Cập nhật UI của chính người dùng]
+    UpdateMyUI --> End2([● Kết thúc])
+```
+
+---
+
+### 💬 4. Biểu đồ tuần tự (Sequence Diagram - Authentication & Login)
+Mô tả chi tiết luồng dữ liệu truyền tin xác thực tài khoản giữa Client, Controller, Service, DB và cấp mã JWT token:
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    actor User as Người dùng
+    participant Client as Client<br/>(React Frontend)
+    participant Controller as AuthController
+    participant Service as AuthService
+    participant Repo as UserRepository
+    participant DB as PostgreSQL
+    participant JWT as JwtService
+
+    User->>Client: Nhập Email + Password
+    User->>Client: Nhấn "Đăng nhập"
+
+    Client->>Controller: POST /api/auth/login<br/>LoginRequest
+    activate Controller
+
+    Controller->>Service: authenticate(email, password)
+    activate Service
+
+    Service->>Repo: findByEmail(email)
+    activate Repo
+
+    Repo->>DB: SELECT user WHERE email = ?
+    activate DB
+
+    DB-->>Repo: User + Password Hash
+    deactivate DB
+
+    Repo-->>Service: User
+    deactivate Repo
+
+    Service->>Service: PasswordEncoder.matches()<br/>Kiểm tra mật khẩu
+
+    alt Thông tin đăng nhập sai
+        Service-->>Controller: BadCredentialsException
+        Controller-->>Client: 401 Unauthorized<br/>Thông tin tài khoản không chính xác
+        Client-->>User: Hiển thị thông báo lỗi
+
+    else Thông tin đăng nhập đúng
+
+        Service->>JWT: generateToken(UserDetails)
+        activate JWT
+
+        JWT->>JWT: Tạo JWT Payload
+        JWT->>JWT: Ký Token bằng Secret Key
+
+        JWT-->>Service: accessToken
+        deactivate JWT
+
+        Service-->>Controller: LoginResponse<br/>UserInfo + JWT Token
+
+        Controller-->>Client: 200 OK<br/>ApiResponse<LoginResponse>
+
+        deactivate Service
+        deactivate Controller
+
+        Client->>Client: Lưu JWT Token
+        Client-->>User: Chuyển hướng đến Dashboard
+
+        Note over Client,Controller: Các request tiếp theo<br/>Authorization: Bearer <JWT>
+    end
+```
+
+---
+
+---
