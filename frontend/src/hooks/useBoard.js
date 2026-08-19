@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import api, { boardApi, taskApi, columnApi, workspaceApi } from "../lib/api";
 import { subscribeBoard } from "../lib/socket";
+import { getCompletedTasks, toggleCompletedTask } from "../lib/utils";
 
 /**
  * Normalizes a column object to have both `name` and `title`
@@ -48,6 +49,7 @@ export const useBoard = (boardId) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [presence, setPresence] = useState([]);
+  const [completedIds, setCompletedIds] = useState(() => getCompletedTasks());
 
   const upsertTask = useCallback((task) => {
     if (!task) return;
@@ -293,59 +295,38 @@ export const useBoard = (boardId) => {
 
   const toggleTaskComplete = useCallback(
     async (task) => {
-      if (!task || !columns.length) return;
+      if (!task) return;
       
-      const isDoneName = (name) => {
-        if (!name) return false;
-        const n = name.toLowerCase();
-        return n.includes("done") || n.includes("complete") || n.includes("hoàn thành") || n.includes("finish");
-      };
+      const next = toggleCompletedTask(task.id);
+      setCompletedIds(next);
+      const isDone = next.includes(task.id);
+      
+      // Optimistic local state update
+      upsertTask({ ...task, isCompleted: isDone, is_completed: isDone });
 
-      let doneCol = columns.find((c) => isDoneName(c.name || c.title));
-
-      // If board only has 1 column and no Done column exists, auto-create a "Done" column
-      if (!doneCol && columns.length === 1) {
-        try {
-          const newCol = await columnApi.create(boardId, {
-            name: "Done",
-            position: 1,
-          });
-          const normalized = normalizeColumn(newCol);
-          doneCol = normalized;
-          setColumns((p) => [...p, normalized]);
-        } catch (e) {
-          console.error("Failed to auto-create Done column", e);
+      try {
+        await taskApi.update(task.id, {
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          due_date: task.due_date || task.dueDate,
+          isCompleted: isDone,
+        });
+        
+        if (isDone) {
+          toast.success("Nhiệm vụ được đánh dấu hoàn thành!");
+        } else {
+          toast.success("Nhiệm vụ được đánh dấu chưa hoàn thành!");
         }
-      }
-
-      if (!doneCol && columns.length > 1) {
-        doneCol = columns[columns.length - 1];
-      }
-
-      const currentColId = task.column_id || task.columnId;
-      const currentCol = columns.find((c) => c.id === currentColId);
-      const isCurrentlyDone = isDoneName(currentCol?.name || currentCol?.title) || (doneCol && currentColId === doneCol.id);
-
-      if (isCurrentlyDone) {
-        // Move back to first column
-        const firstCol = columns[0];
-        if (firstCol && firstCol.id !== currentColId) {
-          await moveTask(task.id, firstCol.id, 0);
-          toast.success(`Moved back to ${firstCol.title || firstCol.name}`);
-        }
-      } else {
-        // Move to Done column or last column
-        if (doneCol && doneCol.id !== currentColId) {
-          await moveTask(task.id, doneCol.id, 0);
-          toast.success(`Marked as completed (${doneCol.title || doneCol.name})`);
-        } else if (columns.length > 1) {
-          const targetCol = columns[columns.length - 1];
-          await moveTask(task.id, targetCol.id, 0);
-          toast.success(`Moved to ${targetCol.title || targetCol.name}`);
-        }
+      } catch (err) {
+        // Rollback on error
+        const prevList = toggleCompletedTask(task.id);
+        setCompletedIds(prevList);
+        upsertTask(task);
+        toast.error(err.message || "Failed to update task state");
       }
     },
-    [boardId, columns, moveTask]
+    [upsertTask]
   );
 
   const enrichedTasks = useMemo(() => {
@@ -356,19 +337,21 @@ export const useBoard = (boardId) => {
     });
     return tasks.map((t) => {
       const aid = t.assigneeId || t.assignee_id || (typeof t.assignee === "object" ? t.assignee?.id : t.assignee);
-      if (!aid) return t;
-      const m = map.get(String(aid).toLowerCase());
+      const m = aid ? map.get(String(aid).toLowerCase()) : null;
       const name = m?.name || t.assignee_name || (typeof t.assignee === "object" ? t.assignee?.name : null);
       const avatar = m?.avatar || t.assignee_avatar || (typeof t.assignee === "object" ? t.assignee?.avatar : null);
+      const isDone = t.isCompleted || t.is_completed || completedIds.some((id) => String(id).toLowerCase() === String(t.id).toLowerCase());
       return {
         ...t,
         assignee_id: aid,
         assigneeId: aid,
         assignee_name: name,
         assignee_avatar: avatar,
+        isCompleted: isDone,
+        status: isDone ? "Done" : (t.status || t.columnName || t.columnTitle)
       };
     });
-  }, [tasks, members]);
+  }, [tasks, members, completedIds]);
 
   return {
     board,

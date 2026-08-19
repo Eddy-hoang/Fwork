@@ -173,7 +173,19 @@ public class PermissionServiceImpl implements PermissionService {
     public void checkUpdateTask(UUID taskId, UUID userId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
-        checkReadWorkspace(task.getColumn().getBoard().getWorkspace().getId(), userId);
+        UUID workspaceId = task.getColumn().getBoard().getWorkspace().getId();
+        WorkspaceRole role = getWorkspaceRole(workspaceId, userId);
+        
+        if (role == WorkspaceRole.OWNER || role == WorkspaceRole.ADMIN) {
+            return;
+        }
+        
+        boolean isCreator = task.getCreatedBy() != null && task.getCreatedBy().getId().equals(userId);
+        boolean isAssignee = task.getAssignee() != null && task.getAssignee().getId().equals(userId);
+        
+        if (!isCreator && !isAssignee) {
+            throw new ForbiddenOperationException("Members can only update tasks they created or are assigned to");
+        }
     }
 
     @Override
@@ -229,30 +241,11 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public void checkUpdateComment(UUID commentId, UUID userId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
-        if (!comment.getCreatedBy().getId().equals(userId)) {
-            throw new ForbiddenOperationException("Only the author can edit this comment");
-        }
+        throw new ForbiddenOperationException("Editing comments is disabled");
     }
 
     @Override
     public void checkDeleteComment(UUID commentId, UUID userId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
-
-        UUID workspaceId = comment.getTask().getColumn().getBoard().getWorkspace().getId();
-        boolean isMember = workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, userId);
-        if (!isMember) {
-            throw new org.springframework.security.access.AccessDeniedException("You do not have access to this workspace");
-        }
-
-        boolean isAuthor = comment.getCreatedBy().getId().equals(userId);
-        if (!isAuthor) {
-            WorkspaceRole role = getWorkspaceRole(workspaceId, userId);
-            if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
-                throw new ForbiddenOperationException("You do not have permission to delete this comment");
-            }
-        }
+        throw new ForbiddenOperationException("Deleting comments is disabled");
     }
 }

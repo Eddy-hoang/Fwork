@@ -190,17 +190,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         permissionService.checkManageMembers(workspaceId, currentUser.getId());
 
         User targetUser = userRepository.findByEmail(request.getEmail())
-                .orElseGet(() -> {
-                    String email = request.getEmail();
-                    String name = email.contains("@") ? email.substring(0, email.indexOf("@")) : email;
-                    User newUser = User.builder()
-                            .email(email)
-                            .name(name)
-                            .passwordHash(passwordEncoder.encode("Fwork@123456"))
-                            .role(com.intern.fwork.enums.Role.USER)
-                            .build();
-                    return userRepository.save(newUser);
-                });
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + request.getEmail()));
+
+        if (request.getRole() == WorkspaceRole.OWNER) {
+            throw new IllegalArgumentException("Cannot invite a member with OWNER role");
+        }
 
         boolean alreadyMember = workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, targetUser.getId());
         if (alreadyMember) {

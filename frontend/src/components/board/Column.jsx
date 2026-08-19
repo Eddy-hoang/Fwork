@@ -18,8 +18,13 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
   useEffect(() => setTitle(column.title || column.name || ""), [column.title, column.name]);
   useEffect(() => {
     const onClick = (e) => menuRef.current && !menuRef.current.contains(e.target) && setMenuOpen(false);
+    const onKeyDown = (e) => e.key === "Escape" && setMenuOpen(false);
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, []);
 
   const commitRename = () => {
@@ -32,7 +37,7 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
   return (
     <div
       className={cn(
-        "flex h-full w-[330px] shrink-0 flex-col rounded-2xl p-2.5 transition-colors",
+        "flex h-full w-[330px] shrink-0 flex-col rounded-3xl p-2.5 transition-colors",
         isOver && "ring-2 ring-inset"
       )}
       style={{ backgroundColor: accent.soft, ...(isOver ? { "--tw-ring-color": accent.ring } : {}) }}
@@ -92,7 +97,7 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
       </div>
 
       {/* Drop zone */}
-      <div ref={setNodeRef} className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-0.5 pb-1 no-scrollbar">
+      <div ref={setNodeRef} className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-0.5 pb-1 column-scrollbar">
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <TaskCard
@@ -106,7 +111,7 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
 
         <button
           onClick={() => onAddTask(column.id)}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-line/80 bg-surface/40 py-2.5 text-xs font-medium text-faint transition-colors hover:border-ink/20 hover:bg-surface hover:text-muted"
+          className="flex items-center justify-center gap-1.5 rounded-2xl border border-dashed border-line/80 bg-surface/40 py-2.5 text-xs font-medium text-faint transition-colors hover:border-ink/20 hover:bg-surface hover:text-muted"
         >
           <Plus className="h-3.5 w-3.5" /> Add task
         </button>

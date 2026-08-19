@@ -156,7 +156,7 @@ const BoardPage = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tasks"
-            className="h-9 w-52 rounded-full border border-line bg-surface pl-9 pr-4 text-xs shadow-[var(--shadow-card)] outline-none transition-all duration-200 focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15"
+            className="h-9 w-52 rounded-lg border border-line bg-surface pl-9 pr-4 text-xs shadow-[var(--shadow-card)] outline-none transition-all duration-200 focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15"
           />
         </div>
         <FilterSelect value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
@@ -227,6 +227,7 @@ const BoardPage = () => {
         open={membersOpen}
         onClose={() => setMembersOpen(false)}
         boardId={boardId}
+        workspaceId={b.board?.workspaceId || b.board?.workspace_id}
         members={b.members}
         setMembers={b.setMembers}
         canManage={canManage}

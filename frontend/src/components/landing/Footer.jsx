@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Zap, Layers } from "lucide-react";
+import { Zap } from "lucide-react";
 
 const columns = [
   {
@@ -65,6 +65,11 @@ const Footer = () => (
       {/* bottom bar */}
       <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t pt-6 text-sm text-muted sm:flex-row">
         <span>© {new Date().getFullYear()} Fwork. All rights reserved.</span>
+        <div className="flex gap-5 text-xs">
+          <Link to="/404" className="transition-colors hover:text-ink">Privacy Policy</Link>
+          <Link to="/404" className="transition-colors hover:text-ink">Terms of Service</Link>
+          <Link to="/404" className="transition-colors hover:text-ink">Cookie Settings</Link>
+        </div>
       </div>
     </div>
   </footer>

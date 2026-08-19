@@ -25,12 +25,14 @@ import Button from "../components/ui/Button";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { BoardCardSkeleton } from "../components/ui/Skeleton";
 import { cn, relativeTime } from "../lib/utils";
+import { useLanguage } from "../context/LanguageContext";
 
 const Dashboard = () => {
   const { boards, loading, remove: removeBoard } = useBoards();
   const { user } = useAuth();
   const { openCreateBoard } = useLayout();
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const { t, lang } = useLanguage();
 
   const stats = useMemo(() => {
     const totalTasks = boards.reduce(
@@ -83,8 +85,8 @@ const Dashboard = () => {
   return (
     <>
       <Topbar
-        title="Dashboard"
-        subtitle="Your boards and shared projects"
+        title={t("Dashboard")}
+        subtitle={lang === "vi" ? "Bảng công việc của bạn và dự án chung" : "Your boards and shared projects"}
         onCreateBoard={openCreateBoard}
       />
 
@@ -93,10 +95,10 @@ const Dashboard = () => {
           {/* Greeting */}
           <div className="mb-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-500">
-              Workspace Overview
+              {t("Workspace Overview")}
             </p>
             <h2 className="mt-2 font-display text-[clamp(26px,3vw,34px)] font-semibold leading-tight tracking-tight">
-              Welcome back, {user?.name?.split(" ")[0]} 👋
+              {t("Welcome back", { name: user?.name?.split(" ")[0] })}
             </h2>
           </div>
 
@@ -104,30 +106,30 @@ const Dashboard = () => {
           <div className="mb-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard
               featured
-              label="Total boards"
+              label={t("Total boards")}
               value={stats.total}
-              hint="Across your workspace"
+              hint={t("Across your workspace")}
               trend={trends.boards}
               icon={FolderKanban}
             />
             <KpiCard
-              label="Total tasks"
+              label={t("Total tasks")}
               value={stats.totalTasks}
-              hint={`${avgPerBoard} avg per board`}
+              hint={t("avg per board", { avg: avgPerBoard })}
               trend={trends.tasks}
               icon={CheckSquare}
             />
             <KpiCard
-              label="Owned by you"
+              label={t("Owned by you")}
               value={stats.owned}
-              hint={`${ownedPct}% of workspace`}
+              hint={t("of workspace", { pct: ownedPct })}
               trend={trends.owned}
               icon={Crown}
             />
             <KpiCard
-              label="Shared with you"
+              label={t("Shared with you")}
               value={stats.shared}
-              hint="From your teammates"
+              hint={t("From your teammates")}
               trend={trends.shared}
               icon={Share2}
             />
@@ -137,8 +139,8 @@ const Dashboard = () => {
           {loading ? (
             <div className="mb-10 space-y-5">
               <div className="grid gap-5 lg:grid-cols-12">
-                <div className="skeleton h-[300px] rounded-3xl lg:col-span-8" />
-                <div className="skeleton h-[300px] rounded-3xl lg:col-span-4" />
+                <div className="skeleton h-[300px] rounded-xl lg:col-span-8" />
+                <div className="skeleton h-[300px] rounded-xl lg:col-span-4" />
               </div>
             </div>
           ) : boards.length > 0 ? (
@@ -161,10 +163,10 @@ const Dashboard = () => {
 
           <div className="mb-5 flex items-end justify-between">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-faint">
-              All boards
+              {t("All boards")}
             </h3>
             <Button size="sm" onClick={openCreateBoard}>
-              <Plus className="h-4 w-4" /> New board
+              <Plus className="h-4 w-4" /> {t("New board")}
             </Button>
           </div>
 
@@ -195,14 +197,14 @@ const Dashboard = () => {
                     {/* color accent strip */}
                     <span
                       className="absolute inset-x-0 top-0 h-1"
-                      style={{ background: b.color || "#7c3aed" }}
+                      style={{ background: b.color || "var(--color-brand-600)" }}
                     />
                     <div className="mb-3.5 flex items-start justify-between">
                       <div
-                        className="flex h-11 w-11 items-center justify-center rounded-2xl"
+                        className="flex h-11 w-11 items-center justify-center rounded-md"
                         style={{
-                          backgroundColor: `${b.color || "#7c3aed"}1f`,
-                          color: b.color || "#7c3aed",
+                          backgroundColor: b.color ? `${b.color}1f` : "color-mix(in oklab, var(--color-brand-600) 12%, transparent)",
+                          color: b.color || "var(--color-brand-600)",
                         }}
                       >
                         <LayoutGrid className="h-5 w-5" />
@@ -314,15 +316,16 @@ const Legend = ({ color, label, value }) => (
 // violet shade scaled to a bar's relative height — taller = deeper iris
 const barShade = (pct) =>
   pct >= 0.8
-    ? "#6d28d9"
+    ? "var(--color-brand-700)"
     : pct >= 0.5
-      ? "#7c3aed"
+      ? "var(--color-brand-600)"
       : pct >= 0.25
-        ? "#a78bfa"
-        : "#c4b5fd";
+        ? "var(--color-brand-300)"
+        : "var(--color-brand-100)";
 
 // ── Board analytics (vertical pill-bar chart + ranked breakdown) ──────────
 const TasksByBoard = ({ boards, className }) => {
+  const { t } = useLanguage();
   const max = Math.max(1, ...boards.map((b) => Number(b.task_count || 0)));
   const total = boards.reduce((s, b) => s + Number(b.task_count || 0), 0);
   const hasTasks = total > 0;
@@ -333,8 +336,8 @@ const TasksByBoard = ({ boards, className }) => {
         className,
       )}
     >
-      <SectionTitle icon={BarChart3} hint="Tasks across your busiest boards">
-        Board analytics
+      <SectionTitle icon={BarChart3} hint={t("Board analytics desc")}>
+        {t("Board analytics")}
       </SectionTitle>
       {hasTasks ? (
         <div className="mt-2 flex flex-1 flex-col gap-6 lg:flex-row">
@@ -343,7 +346,7 @@ const TasksByBoard = ({ boards, className }) => {
             {boards.map((b, i) => {
               const count = Number(b.task_count || 0);
               const pct = count / max;
-              const color = b.color || "#7c3aed";
+              const color = b.color || "var(--color-brand-600)";
               return (
                 <Link
                   key={b.id}
@@ -401,7 +404,7 @@ const TasksByBoard = ({ boards, className }) => {
                   >
                     <span
                       className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: b.color || "#7c3aed" }}
+                      style={{ backgroundColor: b.color || "var(--color-brand-600)" }}
                     />
                     <span className="flex-1 truncate text-[13px] font-medium text-ink transition-colors group-hover:text-brand-600">
                       {b.title}
@@ -429,6 +432,7 @@ const TasksByBoard = ({ boards, className }) => {
 
 // ── Workspace composition (hand-built SVG donut) ──────────────────────────
 const WorkspaceDonut = ({ owned, shared, boards = [], className }) => {
+  const { t } = useLanguage();
   const total = owned + shared;
   const R = 56;
   const SW = 16;
@@ -451,8 +455,8 @@ const WorkspaceDonut = ({ owned, shared, boards = [], className }) => {
         className,
       )}
     >
-      <SectionTitle icon={PieChart} hint="Owned vs shared">
-        Composition
+      <SectionTitle icon={PieChart} hint={t("Owned vs shared")}>
+        {t("Composition")}
       </SectionTitle>
       <div className="flex items-center gap-5">
         <div className="relative h-[128px] w-[128px] shrink-0">
@@ -471,7 +475,7 @@ const WorkspaceDonut = ({ owned, shared, boards = [], className }) => {
                 cy="70"
                 r={R}
                 fill="none"
-                stroke="#7c3aed"
+                stroke="var(--color-brand-600)"
                 strokeWidth={SW}
                 strokeDasharray={`${ownedLen} ${C}`}
               />
@@ -499,7 +503,7 @@ const WorkspaceDonut = ({ owned, shared, boards = [], className }) => {
           </div>
         </div>
         <div className="flex flex-1 flex-col gap-3">
-          <Legend color="#7c3aed" label="Owned" value={owned} />
+          <Legend color="var(--color-brand-600)" label="Owned" value={owned} />
           <Legend color="#3b82f6" label="Shared" value={shared} />
         </div>
       </div>
@@ -535,19 +539,21 @@ const StatRow = ({ label, value }) => (
 );
 
 // ── Recent boards (quick-jump rows) ───────────────────────────────────────
-const RecentBoards = ({ boards, className }) => (
-  <div
-    className={cn(
-      "flex flex-col rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]",
-      className,
-    )}
-  >
-    <SectionTitle icon={Clock} hint="Pick up where you left off">
-      Jump back in
-    </SectionTitle>
+const RecentBoards = ({ boards, className }) => {
+  const { t } = useLanguage();
+  return (
+    <div
+      className={cn(
+        "flex flex-col rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]",
+        className,
+      )}
+    >
+      <SectionTitle icon={Clock} hint={t("Jump back in desc")}>
+        {t("Jump back in")}
+      </SectionTitle>
     <div className="flex flex-col gap-0.5">
       {boards.map((b) => {
-        const color = b.color || "#7c3aed";
+        const color = b.color || "var(--color-brand-600)";
         return (
           <Link
             key={b.id}
@@ -580,7 +586,8 @@ const RecentBoards = ({ boards, className }) => (
       })}
     </div>
   </div>
-);
+  );
+};
 
 // ── Mini bar chart for the KPI corner (per-board task distribution) ────────
 const Sparkbars = ({ data, featured }) => {
@@ -642,7 +649,7 @@ const KpiCard = ({
         </span>
         <span
           className={cn(
-            "grid h-9 w-9 shrink-0 place-items-center rounded-2xl transition-colors duration-200",
+            "grid h-9 w-9 shrink-0 place-items-center rounded-md transition-colors duration-200",
             featured
               ? "bg-white/20 text-white"
               : "bg-brand-50 text-brand-600 group-hover:bg-brand-100",
@@ -676,54 +683,58 @@ const KpiCard = ({
 );
 
 // ── AI promo (gradient bento accent card) ─────────────────────────────────
-const AIPromo = ({ onCreate, className }) => (
-  <div
-    className={cn(
-      "brand-gradient relative flex flex-col justify-between overflow-hidden rounded-3xl p-6 text-white shadow-[var(--shadow-brand)]",
-      className,
-    )}
-  >
-    <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
-    <div className="absolute -bottom-14 -left-8 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
-    <div className="relative">
-      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/20 backdrop-blur">
-        <Sparkles className="h-5 w-5" />
-      </span>
-      <h3 className="mt-4 font-display text-lg font-semibold tracking-tight">
-        Let AI plan your sprint
-      </h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-white/80">
-        Spin up a board and turn a one-line goal into a prioritized backlog in
-        seconds.
-      </p>
-    </div>
+const AIPromo = ({ onCreate, className }) => {
+  const { t } = useLanguage();
+  return (
+    <div
+      className={cn(
+        "brand-gradient relative flex flex-col justify-between overflow-hidden rounded-3xl p-6 text-white shadow-[var(--shadow-brand)]",
+        className,
+      )}
+    >
+      <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
+      <div className="absolute -bottom-14 -left-8 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
+      <div className="relative">
+        <span className="grid h-11 w-11 place-items-center rounded-md bg-white/20 backdrop-blur">
+          <Sparkles className="h-5 w-5" />
+        </span>
+        <h3 className="mt-4 font-display text-lg font-semibold tracking-tight">
+          {t("Let AI plan your sprint")}
+        </h3>
+        <p className="mt-1.5 text-sm leading-relaxed text-white/80">
+          {t("Let AI plan desc")}
+        </p>
+      </div>
     <button
       onClick={onCreate}
-      className="relative mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-brand-700 shadow-[var(--shadow-card)] transition-transform duration-200 active:scale-[0.97]"
+      className="relative mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-semibold text-brand-700 shadow-[var(--shadow-card)] transition-transform duration-200 active:scale-[0.97]"
     >
       <Plus className="h-4 w-4" /> New board
     </button>
   </div>
-);
+  );
+};
 
-const EmptyState = ({ onCreate }) => (
-  <div className="card flex flex-col items-center justify-center gap-4 rounded-3xl py-20 text-center">
-    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-500">
-      <Sparkles className="h-7 w-7" />
-    </div>
-    <div>
-      <h3 className="font-display text-lg font-semibold tracking-tight">
-        Create your first board
-      </h3>
-      <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted">
-        Spin up a board and let AI generate your first set of tasks from a
-        simple goal.
-      </p>
-    </div>
+const EmptyState = ({ onCreate }) => {
+  const { t } = useLanguage();
+  return (
+    <div className="card flex flex-col items-center justify-center gap-4 rounded-xl py-20 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-md bg-brand-50 text-brand-500">
+        <Sparkles className="h-7 w-7" />
+      </div>
+      <div>
+        <h3 className="font-display text-lg font-semibold tracking-tight">
+          {t("Create your first board")}
+        </h3>
+        <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted">
+          {t("Create board desc")}
+        </p>
+      </div>
     <Button onClick={onCreate}>
       <Plus className="h-4 w-4" /> New board
     </Button>
   </div>
-);
+  );
+};
 
 export default Dashboard;

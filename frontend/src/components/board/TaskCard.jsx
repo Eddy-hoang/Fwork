@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Calendar, CheckCircle2, Circle } from "lucide-react";
+import { Calendar, CheckCircle2, Circle, GripVertical } from "lucide-react";
 import Avatar from "../ui/Avatar";
 import { PriorityTag } from "../ui/Badge";
 import { cn, formatDueDate } from "../../lib/utils";
@@ -19,7 +19,7 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
 
   const style = { transform: CSS.Translate.toString(transform), transition };
   const due = formatDueDate(task.due_date || task.dueDate);
-  const isDone = isDoneStatus(task.status || task.columnName || task.columnTitle);
+  const isDone = task.isCompleted || isDoneStatus(task.status || task.columnName || task.columnTitle);
 
   const handleCheckboxClick = (e) => {
     e.stopPropagation();
@@ -31,20 +31,31 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       onClick={() => !isDragging && onClick?.(task)}
       className={cn(
-        "group cursor-grab rounded-2xl border border-line bg-surface p-4 active:cursor-grabbing",
+        "group cursor-default rounded-2xl border border-line bg-surface p-4",
         "shadow-[var(--shadow-card)] transition-all duration-200",
         "hover:shadow-[var(--shadow-soft)]",
-        isDone && "bg-surface/60 opacity-80",
+        isDone && "bg-surface-2/40 border-line/50 opacity-50 shadow-none pointer-events-auto select-none",
         isDragging && "opacity-40",
         overlay && "rotate-2 cursor-grabbing shadow-[var(--shadow-lift)]"
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <PriorityTag priority={task.priority} />
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            title="Drag to reorder"
+            aria-label="Drag to reorder task"
+            onClick={(e) => e.stopPropagation()}
+            className="cursor-grab active:cursor-grabbing text-faint hover:text-ink transition-colors p-1 -ml-1 rounded focus-ring"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4 shrink-0" />
+          </button>
+          <PriorityTag priority={task.priority} className={cn(isDone && "opacity-40")} />
+        </div>
         {onToggleComplete && (
           <button
             type="button"
@@ -66,19 +77,19 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
       <p
         className={cn(
           "mt-2.5 text-[15px] font-semibold leading-snug tracking-tight",
-          isDone ? "text-muted line-through" : "text-ink"
+          isDone ? "text-muted line-through opacity-60" : "text-ink"
         )}
       >
         {task.title}
       </p>
 
       {task.description && (
-        <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted">
+        <p className={cn("mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted", isDone && "line-through opacity-50")}>
           {task.description}
         </p>
       )}
 
-      <div className="mt-3.5 flex items-center justify-between border-t border-line/70 pt-3">
+      <div className={cn("mt-3.5 flex items-center justify-between border-t border-line/70 pt-3", isDone && "opacity-40")}>
         {task.assignee_id ? (
           <div className="flex items-center gap-1.5">
             <Avatar name={task.assignee_name} id={task.assignee_id} src={task.assignee_avatar} size="xs" />

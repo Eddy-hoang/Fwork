@@ -44,4 +44,7 @@ public class TaskResponse {
 
     @JsonProperty("isArchived")
     private boolean isArchived;
+
+    @JsonProperty("isCompleted")
+    private boolean isCompleted;
 }

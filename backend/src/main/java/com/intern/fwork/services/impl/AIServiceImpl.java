@@ -1,5 +1,7 @@
 package com.intern.fwork.services.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intern.fwork.dtos.response.TaskResponse;
 import com.intern.fwork.entities.BoardColumn;
 import com.intern.fwork.entities.Task;
@@ -11,6 +13,7 @@ import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.AIService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +29,98 @@ public class AIServiceImpl implements AIService {
     private final BoardColumnRepository boardColumnRepository;
     private final TaskMapper taskMapper;
     private final SecurityUtils securityUtils;
+    private final ChatModel chatModel;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public Map<String, Object> generateTasks(UUID boardId, String goal, Integer count, UUID columnId) {
         int n = (count == null || count <= 0) ? 6 : Math.min(count, 10);
         String promptGoal = (goal != null && !goal.isBlank()) ? goal.trim() : "Project Deliverables";
 
+        List<Map<String, Object>> resultTasks = new ArrayList<>();
+
+        try {
+            String systemPrompt = "Generate exactly " + n + " tasks for the project goal: \"" + promptGoal + "\".\n" +
+                    "Return ONLY a valid JSON array of tasks, where each task has:\n" +
+                    "- \"title\": a concise task title (in Vietnamese if the goal is in Vietnamese, otherwise English)\n" +
+                    "- \"description\": a short description\n" +
+                    "- \"priority\": one of \"low\", \"medium\", \"high\", \"urgent\"\n" +
+                    "\n" +
+                    "Do not wrap the JSON in markdown code blocks like ```json. Output raw JSON array only.";
+
+            String responseText = chatModel.call(systemPrompt);
+            if (responseText != null) {
+                responseText = responseText.trim();
+                if (responseText.startsWith("```")) {
+                    responseText = responseText.replaceAll("^```[a-zA-Z]*\\s*", "");
+                    responseText = responseText.replaceAll("\\s*```$", "");
+                }
+                responseText = responseText.trim();
+
+                List<Map<String, String>> templates = objectMapper.readValue(responseText, new TypeReference<List<Map<String, String>>>() {});
+
+                if (columnId != null) {
+                    BoardColumn column = boardColumnRepository.findById(columnId).orElse(null);
+                    if (column != null) {
+                        User currentUser = securityUtils.getCurrentUser();
+                        int currentPos = taskRepository.findByColumnIdAndIsArchivedFalseOrderByPositionAsc(columnId).size();
+
+                        for (Map<String, String> t : templates) {
+                            Priority prio;
+                            try {
+                                prio = Priority.valueOf(t.get("priority").toUpperCase());
+                            } catch (Exception e) {
+                                prio = Priority.MEDIUM;
+                            }
+
+                            Task task = Task.builder()
+                                    .title(t.get("title"))
+                                    .description(t.get("description") != null ? t.get("description") : t.get("desc"))
+                                    .priority(prio)
+                                    .position(currentPos++)
+                                    .column(column)
+                                    .createdBy(currentUser)
+                                    .updatedBy(currentUser)
+                                    .isArchived(false)
+                                    .dueDate(LocalDateTime.now().plusDays(7))
+                                    .build();
+
+                            Task saved = taskRepository.save(task);
+                            TaskResponse response = taskMapper.toResponse(saved);
+
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("id", response.getId());
+                            map.put("title", response.getTitle());
+                            map.put("description", response.getDescription());
+                            map.put("priority", response.getPriority().name().toLowerCase());
+                            map.put("columnId", columnId);
+                            map.put("column_id", columnId);
+                            resultTasks.add(map);
+                        }
+
+                        Map<String, Object> res = new HashMap<>();
+                        res.put("tasks", resultTasks);
+                        return res;
+                    }
+                } else {
+                    for (Map<String, String> t : templates) {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("title", t.get("title"));
+                        map.put("description", t.get("description") != null ? t.get("description") : t.get("desc"));
+                        map.put("priority", t.get("priority").toLowerCase());
+                        resultTasks.add(map);
+                    }
+                    Map<String, Object> res = new HashMap<>();
+                    res.put("tasks", resultTasks);
+                    return res;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error calling Gemini API: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Fallback to static mock templates if Gemini fails
         List<Map<String, String>> templates = List.of(
             Map.of("title", "Define requirements and scope for " + promptGoal, "desc", "Draft detailed specs and acceptance criteria.", "priority", "HIGH"),
             Map.of("title", "Design UI/UX wireframes for " + promptGoal, "desc", "Create user flows and interactive prototypes in Figma.", "priority", "MEDIUM"),
@@ -39,14 +128,10 @@ public class AIServiceImpl implements AIService {
             Map.of("title", "Implement core API endpoints for " + promptGoal, "desc", "Develop REST controllers, DTOs, and service layer logic.", "priority", "URGENT"),
             Map.of("title", "Integrate authentication & authorization for " + promptGoal, "desc", "Verify JWT token validation and role-based permissions.", "priority", "HIGH"),
             Map.of("title", "Build frontend components for " + promptGoal, "desc", "Develop React components and integrate with REST APIs.", "priority", "MEDIUM"),
-            Map.of("title", "Write unit and integration tests for " + promptGoal, "desc", "Ensure test coverage over 80% with JUnit & Mockito.", "priority", "LOW"),
-            Map.of("title", "Perform security review and performance tuning", "desc", "Optimize DB queries and audit endpoint security.", "priority", "MEDIUM"),
-            Map.of("title", "Deploy " + promptGoal + " to staging environment", "desc", "Run CI/CD pipeline and verify deployment health.", "priority", "HIGH"),
-            Map.of("title", "Conduct user acceptance testing (UAT)", "desc", "Collect feedback from stakeholders and fix bug reports.", "priority", "MEDIUM")
+            Map.of("title", "Write unit and integration tests for " + promptGoal, "desc", "Ensure test coverage over 80% with JUnit & Mockito.", "priority", "LOW")
         );
 
-        List<Map<String, Object>> resultTasks = new ArrayList<>();
-
+        resultTasks.clear();
         if (columnId != null) {
             BoardColumn column = boardColumnRepository.findById(columnId).orElse(null);
             if (column != null) {
@@ -55,12 +140,10 @@ public class AIServiceImpl implements AIService {
 
                 for (int i = 0; i < Math.min(n, templates.size()); i++) {
                     Map<String, String> t = templates.get(i);
-                    Priority prio;
+                    Priority prio = Priority.MEDIUM;
                     try {
                         prio = Priority.valueOf(t.get("priority"));
-                    } catch (Exception e) {
-                        prio = Priority.MEDIUM;
-                    }
+                    } catch (Exception e) {}
 
                     Task task = Task.builder()
                             .title(t.get("title"))
@@ -76,7 +159,7 @@ public class AIServiceImpl implements AIService {
 
                     Task saved = taskRepository.save(task);
                     TaskResponse response = taskMapper.toResponse(saved);
-                    
+
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", response.getId());
                     map.put("title", response.getTitle());
@@ -86,21 +169,16 @@ public class AIServiceImpl implements AIService {
                     map.put("column_id", columnId);
                     resultTasks.add(map);
                 }
-
-                Map<String, Object> res = new HashMap<>();
-                res.put("tasks", resultTasks);
-                return res;
             }
-        }
-
-        // Just preview suggestions without saving
-        for (int i = 0; i < Math.min(n, templates.size()); i++) {
-            Map<String, String> t = templates.get(i);
-            Map<String, Object> map = new HashMap<>();
-            map.put("title", t.get("title"));
-            map.put("description", t.get("desc"));
-            map.put("priority", t.get("priority").toLowerCase());
-            resultTasks.add(map);
+        } else {
+            for (int i = 0; i < Math.min(n, templates.size()); i++) {
+                Map<String, String> t = templates.get(i);
+                Map<String, Object> map = new HashMap<>();
+                map.put("title", t.get("title"));
+                map.put("description", t.get("desc"));
+                map.put("priority", t.get("priority").toLowerCase());
+                resultTasks.add(map);
+            }
         }
 
         Map<String, Object> res = new HashMap<>();
@@ -116,9 +194,34 @@ public class AIServiceImpl implements AIService {
         }
 
         String taskTitle = (task != null && task.getTitle() != null) ? task.getTitle() : "Task";
+        String taskDesc = (task != null && task.getDescription() != null) ? task.getDescription() : "";
 
+        try {
+            String systemPrompt = "Break down the task \"" + taskTitle + "\" (Description: " + taskDesc + ") into 3 actionable subtasks.\n" +
+                    "Return ONLY a valid JSON array of subtasks, where each subtask has:\n" +
+                    "- \"title\": a concise subtask title (in Vietnamese if the task is in Vietnamese, otherwise English)\n" +
+                    "- \"description\": a short description\n" +
+                    "- \"priority\": one of \"low\", \"medium\", \"high\"\n" +
+                    "\n" +
+                    "Do not wrap the JSON in markdown code blocks. Output raw JSON array only.";
+
+            String responseText = chatModel.call(systemPrompt);
+            if (responseText != null) {
+                responseText = responseText.trim();
+                if (responseText.startsWith("```")) {
+                    responseText = responseText.replaceAll("^```[a-zA-Z]*\\s*", "");
+                    responseText = responseText.replaceAll("\\s*```$", "");
+                }
+                responseText = responseText.trim();
+                return objectMapper.readValue(responseText, new TypeReference<List<Map<String, Object>>>() {});
+            }
+        } catch (Exception e) {
+            System.err.println("Error calling Gemini API for breakdown: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Fallback
         List<Map<String, Object>> subtasks = new ArrayList<>();
-        
         Map<String, Object> sub1 = new HashMap<>();
         sub1.put("title", "Research & analyze requirements for: " + taskTitle);
         sub1.put("description", "Gather initial specifications, identify edge cases, and define acceptance criteria.");
@@ -146,10 +249,10 @@ public class AIServiceImpl implements AIService {
         List<Task> allTasks = taskRepository.findByBoardId(boardId);
 
         int total = allTasks.size();
-        
+
         Map<String, Object> summary = new HashMap<>();
         summary.put("headline", "Sprint Overview: " + total + " total tasks across " + columns.size() + " columns. Team velocity is on track.");
-        
+
         List<String> completed = new ArrayList<>();
         List<String> inProgress = new ArrayList<>();
         List<String> risks = new ArrayList<>();

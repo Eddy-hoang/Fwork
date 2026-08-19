@@ -29,7 +29,11 @@ const AIGenerateModal = ({ open, onClose, boardId, columns, defaultColumnId, onC
     setSuggestions(null);
     try {
       const res = await aiApi.generateTasks(boardId, { goal: goal.trim(), count: Number(count) });
-      setSuggestions(res.tasks);
+      if (res && res.tasks && res.tasks.length > 0) {
+        setSuggestions(res.tasks);
+      } else {
+        toast.error("No tasks were generated. Please try a different prompt.");
+      }
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -45,9 +49,13 @@ const AIGenerateModal = ({ open, onClose, boardId, columns, defaultColumnId, onC
         count: Number(count),
         column_id: columnId,
       });
-      onCreated?.(res.tasks);
-      toast.success(`Added ${res.tasks.length} tasks`);
-      onClose();
+      if (res && res.tasks && res.tasks.length > 0) {
+        onCreated?.(res.tasks);
+        toast.success(`Added ${res.tasks.length} tasks`);
+        onClose();
+      } else {
+        toast.error("Failed to add tasks. No tasks returned.");
+      }
     } catch (err) {
       toast.error(err.message);
     } finally {

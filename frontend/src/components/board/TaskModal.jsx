@@ -63,7 +63,18 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
   useEffect(() => {
     if (!open || !isEdit || !boardId || !task?.id) return;
     const subscription = subscribeBoard(boardId, (wsEvent) => {
-      if (wsEvent.type === "COMMENT_ADDED" || wsEvent.type === "COMMENT_DELETED") {
+      if (wsEvent.type === "COMMENT_ADDED") {
+        fetchComments();
+        // Show a notification if another user commented
+        const comment = wsEvent.payload || wsEvent.data?.comment;
+        if (comment) {
+          const authorId = comment.createdBy?.id || comment.user_id || comment.userId;
+          const authorName = comment.createdBy?.name || comment.user_name || comment.userName || "A user";
+          if (currentUser && String(authorId) !== String(currentUser.id)) {
+            toast.success(`New comment from ${authorName}: "${comment.content || "..."}"`);
+          }
+        }
+      } else if (wsEvent.type === "COMMENT_DELETED") {
         fetchComments();
       }
     });
@@ -72,7 +83,7 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
         subscription.unsubscribe();
       }
     };
-  }, [open, isEdit, boardId, task?.id]);
+  }, [open, isEdit, boardId, task?.id, currentUser]);
 
   const handleAddComment = async (e) => {
     e.preventDefault();
@@ -80,24 +91,20 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
     setSubmittingComment(true);
     try {
       const created = await commentApi.create(task.id, { content: newComment.trim() });
+      if (created && !created.createdBy && currentUser) {
+        created.createdBy = {
+          id: currentUser.id,
+          name: currentUser.name,
+          avatar: currentUser.avatar_url || currentUser.avatar,
+        };
+      }
       setComments((prev) => [...prev, created]);
       setNewComment("");
-      toast.success("Comment added");
+      toast.success("Comment added successfully");
     } catch (err) {
       toast.error(err.message || "Failed to add comment");
     } finally {
       setSubmittingComment(false);
-    }
-  };
-
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm("Are you sure you want to delete this comment?")) return;
-    try {
-      await commentApi.remove(commentId);
-      setComments((prev) => prev.filter((c) => c.id !== commentId));
-      toast.success("Comment deleted");
-    } catch (err) {
-      toast.error(err.message || "Failed to delete comment");
     }
   };
 
@@ -167,6 +174,7 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
   };
 
   return (
+    <>
     <Modal open={open} onClose={onClose} title={isEdit ? "Task Details" : "New task"} size={isEdit ? "lg" : "md"}>
       {isEdit ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -252,9 +260,7 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
                 </div>
               ) : (
                 <div className="space-y-3.5">
-                  {comments.map((comment) => {
-                    const isAuthor = currentUser && comment.createdBy?.id === currentUser.id;
-                    return (
+                  {comments.map((comment) => (
                       <div key={comment.id} className="flex gap-2.5 items-start group">
                         <Avatar
                           name={comment.createdBy?.name || "User"}
@@ -273,21 +279,10 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
                           </div>
                           <div className="relative rounded-2xl rounded-tl-none bg-surface-2/65 px-3 py-2 text-xs text-muted leading-relaxed group-hover:bg-surface-2 transition-colors">
                             <p className="whitespace-pre-wrap break-words">{comment.content}</p>
-                            {isAuthor && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteComment(comment.id)}
-                                className="absolute -right-2 top-1.5 rounded p-1 bg-surface border border-line text-faint hover:text-priority-urgent opacity-0 group-hover:opacity-100 transition-all shadow-[var(--shadow-card)] cursor-pointer"
-                                title="Delete comment"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            )}
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
                 </div>
               )}
             </div>
@@ -355,6 +350,7 @@ const TaskModal = ({ open, onClose, task, defaultColumnId, columns, members, act
         </form>
       )}
     </Modal>
+    </>
   );
 };
 

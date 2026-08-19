@@ -42,14 +42,23 @@ export const AuthProvider = ({ children }) => {
     [handleAuth]
   );
 
+  const loginWithGoogle = useCallback(
+    async (idToken) => handleAuth(await authApi.google(idToken)),
+    [handleAuth]
+  );
+
   const logout = useCallback(() => {
     clearToken();
     disconnectSocket();
     setUser(null);
   }, []);
 
+  const updateUser = useCallback((updatedUser) => {
+    setUser(updatedUser);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, loginWithGoogle, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -77,6 +77,10 @@ public class Task {
     @Builder.Default
     private boolean isArchived = false;
 
+    @Column(name = "is_completed")
+    @Builder.Default
+    private boolean isCompleted = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 
 const variants = {
   primary:
-    "brand-gradient text-white shadow-[var(--shadow-brand)] hover:brightness-[1.07] hover:shadow-[0_14px_34px_rgba(36,102,70,0.45)]",
+    "brand-gradient text-white shadow-[var(--shadow-brand)] hover:brightness-[1.07] hover:shadow-[0_12px_28px_rgba(124,58,237,0.25)]",
   secondary:
     "bg-surface hover:bg-surface-2 text-ink border border-line shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-soft)]",
   ghost: "hover:bg-surface-2 text-muted hover:text-ink",

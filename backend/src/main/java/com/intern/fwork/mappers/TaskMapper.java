@@ -34,6 +34,7 @@ public class TaskMapper {
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .isArchived(task.isArchived())
+                .isCompleted(task.isCompleted())
                 .build();
     }
 }

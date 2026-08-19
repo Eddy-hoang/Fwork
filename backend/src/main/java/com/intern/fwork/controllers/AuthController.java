@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -38,6 +40,16 @@ public class AuthController {
             LoginRequest request
     ){
         LoginResponse response = authService.login(request);
+
+        return ApiResponse.success(response);
+    }
+
+    @PostMapping("/google")
+    public ApiResponse<LoginResponse> googleLogin(
+            @RequestBody Map<String, String> request
+    ){
+        String idToken = request.get("token");
+        LoginResponse response = authService.loginWithGoogle(idToken);
 
         return ApiResponse.success(response);
     }

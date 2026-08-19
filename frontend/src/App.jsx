@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { ProtectedRoute, PublicOnlyRoute } from "./routes/ProtectedRoute";
 
 import Landing from "./pages/Landing";
@@ -17,8 +18,9 @@ import AppLayout from "./components/layout/AppLayout";
 
 const App = () => (
   <BrowserRouter>
-    <AuthProvider>
-      <Routes>
+    <LanguageProvider>
+      <AuthProvider>
+        <Routes>
         <Route path="/" element={<Landing />} />
         <Route
           path="/login"
@@ -71,7 +73,8 @@ const App = () => (
           },
         }}
       />
-    </AuthProvider>
+      </AuthProvider>
+    </LanguageProvider>
   </BrowserRouter>
 );
 

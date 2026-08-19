@@ -63,3 +63,25 @@ export const formatDueDate = (date) => {
   if (isTomorrow(d)) return { label: "Tomorrow", overdue: false };
   return { label: format(d, "MMM d"), overdue: isPast(d) };
 };
+
+export const getCompletedTasks = () => {
+  try {
+    const saved = localStorage.getItem("completed_task_ids");
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const toggleCompletedTask = (taskId) => {
+  try {
+    const current = getCompletedTasks();
+    const next = current.includes(taskId)
+      ? current.filter((id) => id !== taskId)
+      : [...current, taskId];
+    localStorage.setItem("completed_task_ids", JSON.stringify(next));
+    return next;
+  } catch {
+    return [];
+  }
+};

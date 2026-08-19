@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight, Check, FileText } from "lucide-react";
+import { Sparkles, ArrowRight, Check } from "lucide-react";
 
 const EASE = [0.16, 1, 0.3, 1];
 

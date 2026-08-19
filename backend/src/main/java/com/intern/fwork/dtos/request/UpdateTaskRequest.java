@@ -1,6 +1,7 @@
 package com.intern.fwork.dtos.request;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intern.fwork.enums.Priority;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -28,6 +29,9 @@ public class UpdateTaskRequest {
 
     @Min(value = 0, message = "Position must be >= 0")
     private Integer position;
+
+    @JsonProperty("isCompleted")
+    private Boolean isCompleted;
 
     public void setDueDate(Object value) {
         if (value == null) {

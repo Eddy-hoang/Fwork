@@ -22,6 +22,9 @@ public interface TaskActivityRepository extends JpaRepository<TaskActivity, UUID
            countQuery = "SELECT COUNT(ta) FROM TaskActivity ta WHERE ta.task.id = :taskId")
     Page<TaskActivity> findByTaskIdOrderByCreatedAtDesc(@Param("taskId") UUID taskId, Pageable pageable);
 
+    @Query("SELECT ta FROM TaskActivity ta LEFT JOIN FETCH ta.actor WHERE ta.task.column.board.id = :boardId ORDER BY ta.createdAt DESC")
+    List<TaskActivity> findByBoardId(@Param("boardId") UUID boardId);
+
     @Modifying
     @Query("DELETE FROM TaskActivity ta WHERE ta.task.id = :taskId")
     void deleteByTaskId(@Param("taskId") UUID taskId);

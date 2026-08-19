@@ -12,7 +12,7 @@ export const Input = ({ label, error, className, id, ...props }) => (
     )}
     <input
       id={id}
-      className={cn("input-base rounded-full", error && "!border-priority-urgent", className)}
+      className={cn("input-base rounded-xl", error && "!border-priority-urgent", className)}
       {...props}
     />
     {error && <p className="text-xs text-priority-urgent">{error}</p>}
@@ -29,7 +29,7 @@ export const Textarea = ({ label, error, className, id, rows = 4, ...props }) =>
     <textarea
       id={id}
       rows={rows}
-      className={cn("input-base resize-none rounded-2xl", error && "!border-priority-urgent", className)}
+      className={cn("input-base resize-none rounded-xl", error && "!border-priority-urgent", className)}
       {...props}
     />
     {error && <p className="text-xs text-priority-urgent">{error}</p>}
@@ -47,7 +47,7 @@ export const Select = ({ label, className, id, children, ...props }) => (
     <div className="relative">
       <select
         id={id}
-        className={cn("input-base cursor-pointer appearance-none rounded-full pr-10", className)}
+        className={cn("input-base cursor-pointer appearance-none rounded-xl pr-10", className)}
         {...props}
       >
         {children}

@@ -22,4 +22,9 @@ public class TaskActivityController {
     ) {
         return ApiResponse.success(taskActivityService.getByTask(taskId, pageable));
     }
+
+    @GetMapping("/api/boards/{boardId}/activities")
+    public ApiResponse<List<TaskActivityResponse>> getBoardActivities(@PathVariable UUID boardId) {
+        return ApiResponse.success(taskActivityService.getByBoard(boardId));
+    }
 }

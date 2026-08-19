@@ -180,6 +180,9 @@ public class TaskServiceImpl implements TaskService {
             task.setPriority(request.getPriority());
         }
         task.setDueDate(request.getDueDate());
+        if (request.getIsCompleted() != null) {
+            task.setCompleted(request.getIsCompleted());
+        }
         task.setUpdatedBy(currentUser);
 
         TaskResponse response = taskMapper.toResponse(taskRepository.save(task));

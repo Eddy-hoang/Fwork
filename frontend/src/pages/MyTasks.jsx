@@ -7,19 +7,23 @@ import { useWorkspace } from "../hooks/useWorkspace";
 import Topbar from "../components/layout/Topbar";
 import { PriorityTag } from "../components/ui/Badge";
 import { FilterSelect } from "../components/ui/Input";
-import { PRIORITIES, formatDueDate, cn } from "../lib/utils";
+import { PRIORITIES, formatDueDate, cn, getCompletedTasks } from "../lib/utils";
+import { useLanguage } from "../context/LanguageContext";
 
-const isDone = (t) => (t.status || "").toLowerCase() === "done";
+const isDone = (t, completedIds = []) => 
+  completedIds.some((id) => String(id).toLowerCase() === String(t.id).toLowerCase()) || (t.status || "").toLowerCase() === "done";
 
 const MyTasks = () => {
   const { user } = useAuth();
   const { openCreateBoard } = useLayout();
   const { tasks, loading } = useWorkspace();
+  const { t } = useLanguage();
 
   const [priority, setPriority] = useState("");
   const [boardId, setBoardId] = useState("");
   const [search, setSearch] = useState("");
   const [now] = useState(() => Date.now());
+  const [completedIds] = useState(() => getCompletedTasks());
 
   const mine = useMemo(
     () =>
@@ -43,13 +47,13 @@ const MyTasks = () => {
     let dueSoon = 0;
     const week = now + 7 * 24 * 60 * 60 * 1000;
     mine.forEach((t) => {
-      if (isDone(t) || !t.due_date) return;
+      if (isDone(t, completedIds) || !t.due_date) return;
       const d = new Date(t.due_date).getTime();
       if (d < now) overdue += 1;
       else if (d <= week) dueSoon += 1;
     });
-    return { total: mine.length, overdue, dueSoon, done: mine.filter(isDone).length };
-  }, [mine, now]);
+    return { total: mine.length, overdue, dueSoon, done: mine.filter(t => isDone(t, completedIds)).length };
+  }, [mine, now, completedIds]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -81,16 +85,16 @@ const MyTasks = () => {
 
   return (
     <>
-      <Topbar title="My Tasks" subtitle="Everything assigned to you" onCreateBoard={openCreateBoard} />
+      <Topbar title={t("My Tasks")} subtitle={t("Everything assigned to you")} onCreateBoard={openCreateBoard} />
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[1600px] px-6 py-8 md:px-8">
           {/* KPIs */}
           <div className="mb-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <MiniStat icon={ListTodo} label="Assigned to you" value={stats.total} tint="#2f8159" />
-            <MiniStat icon={AlertTriangle} label="Overdue" value={stats.overdue} tint="#e11d48" />
-            <MiniStat icon={CalendarClock} label="Due this week" value={stats.dueSoon} tint="#d97706" />
-            <MiniStat icon={CheckSquare} label="Completed" value={stats.done} tint="#10b981" />
+            <MiniStat icon={ListTodo} label={t("Assigned to you")} value={stats.total} tint="var(--color-brand-600)" />
+            <MiniStat icon={AlertTriangle} label={t("Overdue")} value={stats.overdue} tint="var(--color-priority-urgent)" />
+            <MiniStat icon={CalendarClock} label={t("Due this week")} value={stats.dueSoon} tint="var(--color-priority-medium)" />
+            <MiniStat icon={CheckSquare} label={t("Completed")} value={stats.done} tint="var(--color-priority-low)" />
           </div>
 
           {/* Filters */}
@@ -98,17 +102,17 @@ const MyTasks = () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search your tasks"
-              className="h-9 w-56 rounded-full border border-line bg-surface px-4 text-xs shadow-[var(--shadow-card)] outline-none transition-all duration-200 focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15"
+              placeholder={t("Search your tasks")}
+              className="h-9 w-56 rounded-lg border border-line bg-surface px-4 text-xs shadow-[var(--shadow-card)] outline-none transition-all duration-200 focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15"
             />
             <FilterSelect value={priority} onChange={(e) => setPriority(e.target.value)}>
-              <option value="">All priorities</option>
+              <option value="">{t("All priorities")}</option>
               {PRIORITIES.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
               ))}
             </FilterSelect>
             <FilterSelect value={boardId} onChange={(e) => setBoardId(e.target.value)}>
-              <option value="">All boards</option>
+              <option value="">{t("All boards")}</option>
               {boardsInPlay.map((b) => (
                 <option key={b.id} value={b.id}>{b.title}</option>
               ))}
@@ -118,11 +122,11 @@ const MyTasks = () => {
                 onClick={() => { setPriority(""); setBoardId(""); setSearch(""); }}
                 className="rounded-full px-3 py-1.5 text-xs font-medium text-faint transition-colors hover:bg-surface-2 hover:text-ink"
               >
-                Clear
+                {t("Clear")}
               </button>
             )}
             <span className="ml-auto rounded-full bg-surface-2 px-3 py-1 text-xs font-medium tabular text-muted">
-              {filtered.length} tasks
+              {filtered.length} {t("Tasks").toLowerCase()}
             </span>
           </div>
 
@@ -132,24 +136,24 @@ const MyTasks = () => {
             </div>
           ) : mine.length === 0 ? (
             <EmptyState
-              title="No tasks assigned to you"
-              body="Tasks you’re assigned across all your boards will show up here."
+              title={t("No tasks assigned")}
+              body={t("Tasks you’re assigned")}
             />
           ) : filtered.length === 0 ? (
-            <EmptyState title="No matching tasks" body="Try clearing your filters." />
+            <EmptyState title={t("No matching tasks")} body={t("Clear filters")} />
           ) : (
             <div className="space-y-8">
               {grouped.map((g) => (
                 <div key={g.id}>
                   <div className="mb-3 flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: g.color || "#2f8159" }} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: g.color || "var(--color-brand-600)" }} />
                     <h3 className="font-display text-sm font-semibold tracking-tight">{g.title}</h3>
                     <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-medium tabular text-muted">
                       {g.items.length}
                     </span>
                   </div>
                   <div className="space-y-2.5">
-                    {g.items.map((t) => <TaskRow key={t.id} task={t} />)}
+                    {g.items.map((t) => <TaskRow key={t.id} task={t} completedIds={completedIds} />)}
                   </div>
                 </div>
               ))}
@@ -161,9 +165,9 @@ const MyTasks = () => {
   );
 };
 
-const TaskRow = ({ task }) => {
+const TaskRow = ({ task, completedIds }) => {
   const due = formatDueDate(task.due_date);
-  const done = isDone(task);
+  const done = isDone(task, completedIds);
   return (
     <Link
       to={`/board/${task.board_id}`}
@@ -195,7 +199,7 @@ const MiniStat = ({ icon: Icon, label, value, tint }) => (
   <div className="rounded-3xl border border-line bg-surface p-5 shadow-[var(--shadow-card)] transition-shadow duration-300 hover:shadow-[var(--shadow-soft)]">
     <div className="mb-6 flex items-center justify-between">
       <span className="text-xs font-medium uppercase tracking-[0.1em] text-muted">{label}</span>
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl" style={{ backgroundColor: `${tint}1a`, color: tint }}>
+      <div className="flex h-10 w-10 items-center justify-center rounded-md" style={{ backgroundColor: `color-mix(in oklab, ${tint} 10%, transparent)`, color: tint }}>
         <Icon className="h-[18px] w-[18px]" />
       </div>
     </div>
@@ -205,7 +209,7 @@ const MiniStat = ({ icon: Icon, label, value, tint }) => (
 
 const EmptyState = ({ title, body }) => (
   <div className="card flex flex-col items-center justify-center gap-3 rounded-3xl py-20 text-center">
-    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-500">
+    <div className="flex h-14 w-14 items-center justify-center rounded-md bg-brand-50 text-brand-500">
       <CheckSquare className="h-7 w-7" />
     </div>
     <div>

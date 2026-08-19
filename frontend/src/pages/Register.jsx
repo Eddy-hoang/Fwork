@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Zap } from "lucide-react";
@@ -8,10 +8,49 @@ import Button from "../components/ui/Button";
 import AuthAside from "../components/auth/AuthAside";
 
 const Register = () => {
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
+
+  const handleGoogleSuccess = useCallback(async (response) => {
+    setLoading(true);
+    try {
+      await loginWithGoogle(response.credential);
+      toast.success("Account created successfully!");
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [loginWithGoogle, navigate]);
+
+  useEffect(() => {
+    const initializeGoogle = () => {
+      if (window.google && window.google.accounts) {
+        const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "870630656041-3g8n9o6eb5g8n265n1b00e3u5p9p6b0p.apps.googleusercontent.com";
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: handleGoogleSuccess,
+        });
+        window.google.accounts.id.renderButton(
+          document.getElementById("google-signup-button"),
+          {
+            theme: "outline",
+            size: "large",
+            width: 320,
+            text: "signup_with",
+            shape: "rectangular",
+          }
+        );
+      } else {
+        setTimeout(initializeGoogle, 100);
+      }
+    };
+
+    initializeGoogle();
+  }, [handleGoogleSuccess]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -77,6 +116,19 @@ const Register = () => {
               Create account
             </Button>
           </form>
+
+          <div className="relative my-5 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-line"></div>
+            </div>
+            <div className="relative bg-surface px-3 text-[10px] uppercase text-faint font-semibold tracking-wider">
+              Or continue with
+            </div>
+          </div>
+
+          <div className="w-full flex justify-center">
+            <div id="google-signup-button"></div>
+          </div>
         </div>
 
           <p className="mt-5 text-center text-sm text-muted">

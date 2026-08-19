@@ -14,4 +14,6 @@ public interface TaskActivityService {
     void log(Task task, User actor, TaskActivityAction action, String detail);
 
     Page<TaskActivityResponse> getByTask(UUID taskId, Pageable pageable);
+
+    java.util.List<TaskActivityResponse> getByBoard(UUID boardId);
 }

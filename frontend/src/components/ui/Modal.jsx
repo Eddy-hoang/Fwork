@@ -24,6 +24,9 @@ const Modal = ({ open, onClose, title, description, children, footer, size = "md
         >
           <div className="fixed inset-0 bg-ink/35 backdrop-blur-sm" onClick={onClose} />
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={title ? "modal-title" : undefined}
             className={cn(
               "card relative z-10 mt-8 w-full rounded-3xl p-6 shadow-[var(--shadow-lift)]",
               widths[size]
@@ -36,7 +39,7 @@ const Modal = ({ open, onClose, title, description, children, footer, size = "md
             {(title || onClose) && (
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  {title && <h2 className="font-display text-lg font-semibold tracking-tight">{title}</h2>}
+                  {title && <h2 id="modal-title" className="font-display text-lg font-semibold tracking-tight">{title}</h2>}
                   {description && <p className="mt-1 text-sm text-muted">{description}</p>}
                 </div>
                 <button

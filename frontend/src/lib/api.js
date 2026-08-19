@@ -61,7 +61,18 @@ export const authApi = {
       if (token) setToken(token);
       return { token, user: res?.user || res };
     }),
+  google: (idToken) =>
+    api.post("/auth/google", { token: idToken }).then((res) => {
+      const token = res?.accessToken || res?.token;
+      if (token) setToken(token);
+      return { token, user: res?.user || res };
+    }),
   me: () => api.get("/auth/me"),
+};
+
+export const userApi = {
+  search: (query) => api.get(`/users/search?q=${encodeURIComponent(query)}`),
+  updateProfile: (data) => api.put("/users/me", data),
 };
 
 export const workspaceApi = {
@@ -129,9 +140,9 @@ export const notificationApi = {
 
 export const aiApi = {
   generateTasks: (boardId, data) =>
-    api.post(`/boards/${boardId}/ai/generate-tasks`, data).catch(() => ({ tasks: [] })),
+    api.post(`/boards/${boardId}/ai/generate-tasks`, data),
   breakdown: (boardId, data) =>
-    api.post(`/boards/${boardId}/ai/breakdown`, data).catch(() => []),
+    api.post(`/boards/${boardId}/ai/breakdown`, data),
   summary: (boardId) =>
-    api.post(`/boards/${boardId}/ai/summary`).catch(() => ({ summary: "AI Summary unavailable" })),
+    api.post(`/boards/${boardId}/ai/summary`),
 };

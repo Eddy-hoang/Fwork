@@ -30,6 +30,7 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(columnDefinition = "TEXT")
     private String avatar;
 
     @Enumerated(EnumType.STRING)

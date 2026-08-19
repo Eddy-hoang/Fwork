@@ -7,6 +7,7 @@ import com.intern.fwork.entities.User;
 import com.intern.fwork.enums.TaskActivityAction;
 import com.intern.fwork.exceptions.TaskNotFoundException;
 import com.intern.fwork.mappers.TaskActivityMapper;
+import com.intern.fwork.repositories.BoardRepository;
 import com.intern.fwork.repositories.TaskActivityRepository;
 import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.security.SecurityUtils;
@@ -26,6 +27,7 @@ public class TaskActivityServiceImpl implements TaskActivityService {
 
     private final TaskActivityRepository taskActivityRepository;
     private final TaskRepository taskRepository;
+    private final BoardRepository boardRepository;
     private final TaskActivityMapper taskActivityMapper;
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
@@ -56,5 +58,19 @@ public class TaskActivityServiceImpl implements TaskActivityService {
 
         return taskActivityRepository.findByTaskIdOrderByCreatedAtDesc(taskId, pageable)
                 .map(taskActivityMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TaskActivityResponse> getByBoard(UUID boardId) {
+        User currentUser = securityUtils.getCurrentUser();
+        com.intern.fwork.entities.Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new com.intern.fwork.exceptions.ResourceNotFoundException("Board not found"));
+        permissionService.checkWorkspaceAccess(board.getWorkspace().getId(), currentUser.getId());
+
+        return taskActivityRepository.findByBoardId(boardId)
+                .stream()
+                .map(taskActivityMapper::toResponse)
+                .toList();
     }
 }

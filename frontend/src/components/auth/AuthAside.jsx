@@ -13,19 +13,19 @@ const AuthAside = ({
       <div className="pointer-events-none absolute inset-0 mix-blend-screen">
         <motion.div
           className="absolute left-[-15%] top-[8%] h-72 w-[70%] rounded-[50%] blur-3xl"
-          style={{ background: "radial-gradient(closest-side, rgba(124,214,164,0.7), transparent)" }}
+          style={{ background: "radial-gradient(closest-side, rgba(167,139,250,0.35), transparent)" }}
           animate={{ x: ["-6%", "16%", "-6%"], y: [0, 30, 0], rotate: [-8, 8, -8] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute right-[-15%] top-[34%] h-80 w-[72%] rounded-[50%] blur-3xl"
-          style={{ background: "radial-gradient(closest-side, rgba(150,236,186,0.55), transparent)" }}
+          style={{ background: "radial-gradient(closest-side, rgba(129,140,248,0.3), transparent)" }}
           animate={{ x: ["8%", "-16%", "8%"], y: [0, -26, 0], rotate: [8, -8, 8] }}
           transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute bottom-[6%] left-1/4 h-64 w-[55%] rounded-[50%] blur-3xl"
-          style={{ background: "radial-gradient(closest-side, rgba(196,250,216,0.5), transparent)" }}
+          style={{ background: "radial-gradient(closest-side, rgba(232,121,249,0.2), transparent)" }}
           animate={{ x: ["-10%", "14%", "-10%"], y: [0, 18, 0], scale: [1, 1.18, 1] }}
           transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
         />

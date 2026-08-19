@@ -7,6 +7,7 @@ import {
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { useLayout } from "../components/layout/AppLayout";
 import { useWorkspace } from "../hooks/useWorkspace";
+import { useAuth } from "../context/AuthContext";
 import Topbar from "../components/layout/Topbar";
 import { cn, priorityMeta } from "../lib/utils";
 
@@ -15,7 +16,13 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const Calendar = () => {
   const { openCreateBoard } = useLayout();
   const { tasks, loading } = useWorkspace();
+  const { user } = useAuth();
   const [cursor, setCursor] = useState(() => new Date());
+
+  const myTasks = useMemo(() => {
+    if (!user) return [];
+    return tasks.filter((t) => t.assignee_id === user.id);
+  }, [tasks, user]);
 
   const days = useMemo(() => {
     const gridStart = startOfWeek(startOfMonth(cursor), { weekStartsOn: 0 });
@@ -25,7 +32,7 @@ const Calendar = () => {
 
   const byDay = useMemo(() => {
     const map = {};
-    tasks.forEach((t) => {
+    myTasks.forEach((t) => {
       const d = t.due_date || t.dueDate;
       if (!d) return;
       try {
@@ -34,15 +41,15 @@ const Calendar = () => {
       } catch (e) {}
     });
     return map;
-  }, [tasks]);
+  }, [myTasks]);
 
   const monthCount = useMemo(
     () =>
-      tasks.filter((t) => {
+      myTasks.filter((t) => {
         const d = t.due_date || t.dueDate;
         return d && isSameMonth(new Date(d), cursor);
       }).length,
-    [tasks, cursor]
+    [myTasks, cursor]
   );
 
   return (
@@ -60,7 +67,7 @@ const Calendar = () => {
             <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => setCursor(new Date())}
-                className="h-9 rounded-full border border-line bg-surface px-4 text-xs font-semibold text-ink shadow-[var(--shadow-card)] transition-all duration-200 hover:shadow-[var(--shadow-soft)]"
+                className="h-9 rounded-md border border-line bg-surface px-4 text-xs font-semibold text-ink shadow-[var(--shadow-card)] transition-all duration-200 hover:shadow-[var(--shadow-soft)]"
               >
                 Today
               </button>
