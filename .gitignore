@@ -1,6 +1,8 @@
 # Spring Boot
 ``
 .env
+node_modules/
+**/node_modules/
 
 # Build
 target/
