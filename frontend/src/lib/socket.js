@@ -5,7 +5,11 @@ let stompClient = null;
 
 export const getStompClient = () => {
   if (!stompClient) {
-    const wsUrl = (import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws");
+    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const defaultWsUrl = window.location.port === "5173"
+      ? "ws://localhost:8080/ws"
+      : `${wsProtocol}//${window.location.host}/ws`;
+    const wsUrl = import.meta.env.VITE_WS_URL || defaultWsUrl;
     stompClient = new Client({
       brokerURL: wsUrl,
       connectHeaders: {
