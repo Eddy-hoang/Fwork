@@ -30,10 +30,13 @@ export const BoardsProvider = ({ children }) => {
           if (prev?.id === selectedWs.id) return prev;
           return selectedWs;
         });
+      } else {
+        setLoading(false);
       }
       return wsList;
     } catch (e) {
       console.error("Failed to load workspaces", e);
+      setLoading(false);
       return [];
     }
   }, []);
