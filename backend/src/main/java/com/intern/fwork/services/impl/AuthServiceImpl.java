@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
 
     @Override
-    public UserResponse register(RegisterRequest request) {
+    public LoginResponse register(RegisterRequest request) {
 
         log.info("Registering user with email: {}", request.getEmail());
 
@@ -62,7 +62,17 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User {} registered successfully", savedUser.getId());
 
-        return userMapper.toResponse(savedUser);
+        CustomUserDetails userDetails = new CustomUserDetails(savedUser);
+        String token = jwtService.generateToken(userDetails);
+        RefreshToken refreshToken = refreshTokenService.create(savedUser);
+
+        return LoginResponse.builder()
+                .accessToken(token)
+                .refreshToken(refreshToken.getToken())
+                .tokenType("Bearer")
+                .expiresIn(jwtService.getJwtExpiration() / 1000)
+                .user(userMapper.toResponse(savedUser))
+                .build();
     }
 
     @Override

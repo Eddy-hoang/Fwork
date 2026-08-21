@@ -24,10 +24,10 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<UserResponse> register(
+    public ApiResponse<LoginResponse> register(
             @Valid @RequestBody RegisterRequest request
     ){
-        UserResponse response = authService.register(request);
+        LoginResponse response = authService.register(request);
 
         return ApiResponse.success(response);
     }

@@ -11,7 +11,7 @@ import jakarta.validation.Valid;
 
 public interface AuthService {
 
-    UserResponse register(RegisterRequest request);
+    LoginResponse register(RegisterRequest request);
 
     LoginResponse login(LoginRequest request);
 
