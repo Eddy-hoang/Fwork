@@ -7,8 +7,8 @@ import Avatar from "../ui/Avatar";
 import { workspaceApi, userApi } from "../../lib/api";
 import { useWorkspace } from "../../hooks/useWorkspace";
 
-const InviteMemberModal = ({ open, onClose }) => {
-  const { currentWorkspace, refreshMembers } = useWorkspace();
+const InviteMemberModal = ({ open, onClose, onSuccess }) => {
+  const { currentWorkspace } = useWorkspace();
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -73,7 +73,7 @@ const InviteMemberModal = ({ open, onClose }) => {
       setSearchQuery("");
       setSelectedUser(null);
       setSuggestions([]);
-      refreshMembers();
+      if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
       toast.error(err.message || "Failed to add member");

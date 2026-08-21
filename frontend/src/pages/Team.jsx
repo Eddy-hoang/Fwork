@@ -196,7 +196,7 @@ const Team = () => {
         </div>
       </div>
 
-      <InviteMemberModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      <InviteMemberModal open={inviteOpen} onClose={() => setInviteOpen(false)} onSuccess={refreshMembers} />
 
       <ConfirmDialog
         open={!!removeTarget}
