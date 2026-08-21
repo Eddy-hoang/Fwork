@@ -26,6 +26,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.intern.fwork.repositories.WorkspaceRepository;
+import com.intern.fwork.repositories.WorkspaceMemberRepository;
+import com.intern.fwork.entities.Workspace;
+import com.intern.fwork.entities.WorkspaceMember;
+import com.intern.fwork.enums.WorkspaceRole;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,6 +46,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
+    private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceMemberRepository workspaceMemberRepository;
 
     @Override
     public LoginResponse register(RegisterRequest request) {
@@ -59,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+        createDefaultWorkspace(savedUser);
 
         log.info("User {} registered successfully", savedUser.getId());
 
@@ -201,6 +209,7 @@ public class AuthServiceImpl implements AuthService {
                         .avatar(picture)
                         .build();
                 user = userRepository.save(user);
+                createDefaultWorkspace(user);
                 log.info("Created new user via Google login: {}", email);
             }
 
@@ -247,5 +256,41 @@ public class AuthServiceImpl implements AuthService {
         user.setAvatar(request.getAvatar());
         User saved = userRepository.save(user);
         return userMapper.toResponse(saved);
+    }
+
+    private void createDefaultWorkspace(User user) {
+        String workspaceName = user.getName() + "'s Workspace";
+        String baseSlug = workspaceName.toLowerCase()
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", "-");
+        if (baseSlug.isEmpty()) {
+            baseSlug = "workspace";
+        }
+        String slug = baseSlug;
+        int count = 1;
+        while (workspaceRepository.existsBySlug(slug)) {
+            slug = baseSlug + "-" + count;
+            count++;
+        }
+
+        Workspace workspace = Workspace.builder()
+                .name(workspaceName)
+                .slug(slug)
+                .description("Default workspace for " + user.getName())
+                .isArchived(false)
+                .createdBy(user)
+                .updatedBy(user)
+                .build();
+
+        Workspace savedWorkspace = workspaceRepository.save(workspace);
+
+        WorkspaceMember member = WorkspaceMember.builder()
+                .workspace(savedWorkspace)
+                .user(user)
+                .role(WorkspaceRole.OWNER)
+                .build();
+
+        workspaceMemberRepository.save(member);
+        log.info("Created default workspace for registered user: {}", user.getEmail());
     }
 }
