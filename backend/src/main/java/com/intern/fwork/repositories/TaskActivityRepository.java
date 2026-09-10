@@ -15,21 +15,21 @@ import java.util.UUID;
 @Repository
 public interface TaskActivityRepository extends JpaRepository<TaskActivity, UUID> {
     
-    @Query("SELECT ta FROM TaskActivity ta LEFT JOIN FETCH ta.actor WHERE ta.task.id = :taskId ORDER BY ta.createdAt DESC")
-    List<TaskActivity> findByTaskIdOrderByCreatedAtDesc(@Param("taskId") UUID taskId);
+    @Query(value = "SELECT ta FROM TaskActivity ta LEFT JOIN FETCH ta.actor WHERE ta.boardId = :boardId ORDER BY ta.createdAt DESC",
+           countQuery = "SELECT COUNT(ta) FROM TaskActivity ta WHERE ta.boardId = :boardId")
+    Page<TaskActivity> findByBoardIdOrderByCreatedAtDesc(@Param("boardId") UUID boardId, Pageable pageable);
 
-    @Query(value = "SELECT ta FROM TaskActivity ta LEFT JOIN FETCH ta.actor WHERE ta.task.id = :taskId ORDER BY ta.createdAt DESC",
-           countQuery = "SELECT COUNT(ta) FROM TaskActivity ta WHERE ta.task.id = :taskId")
-    Page<TaskActivity> findByTaskIdOrderByCreatedAtDesc(@Param("taskId") UUID taskId, Pageable pageable);
+    @Query(value = "SELECT ta FROM TaskActivity ta LEFT JOIN FETCH ta.actor WHERE ta.boardId = :boardId AND ta.actionType = :actionType ORDER BY ta.createdAt DESC",
+           countQuery = "SELECT COUNT(ta) FROM TaskActivity ta WHERE ta.boardId = :boardId AND ta.actionType = :actionType")
+    Page<TaskActivity> findByBoardIdAndActionTypeOrderByCreatedAtDesc(@Param("boardId") UUID boardId, @Param("actionType") String actionType, Pageable pageable);
 
-    @Query("SELECT ta FROM TaskActivity ta LEFT JOIN FETCH ta.actor WHERE ta.task.column.board.id = :boardId ORDER BY ta.createdAt DESC")
-    List<TaskActivity> findByBoardId(@Param("boardId") UUID boardId);
+    List<TaskActivity> findByBoardId(UUID boardId);
 
     @Modifying
-    @Query("DELETE FROM TaskActivity ta WHERE ta.task.id = :taskId")
+    @Query("DELETE FROM TaskActivity ta WHERE ta.targetId = :taskId")
     void deleteByTaskId(@Param("taskId") UUID taskId);
 
     @Modifying
-    @Query("DELETE FROM TaskActivity ta WHERE ta.task.column.id = :columnId")
-    void deleteByColumnId(@Param("columnId") UUID columnId);
+    @Query("DELETE FROM TaskActivity ta WHERE ta.targetId = :targetId")
+    void deleteByTargetId(@Param("targetId") UUID targetId);
 }

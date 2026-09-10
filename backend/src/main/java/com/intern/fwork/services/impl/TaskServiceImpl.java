@@ -26,6 +26,7 @@ import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.repositories.UserRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.PermissionService;
+import com.intern.fwork.services.TaskActivityService;
 import com.intern.fwork.services.TaskService;
 import com.intern.fwork.events.*;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,7 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
+    private final TaskActivityService taskActivityService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
@@ -98,6 +100,15 @@ public class TaskServiceImpl implements TaskService {
                 .build();
 
         TaskResponse response = taskMapper.toResponse(taskRepository.save(task));
+        taskActivityService.log(
+                column.getBoard().getId(),
+                currentUser,
+                "TASK_CREATED",
+                "TASK",
+                task.getId(),
+                currentUser.getName() + " vừa tạo thẻ '" + task.getTitle() + "'",
+                java.util.Map.of("taskTitle", task.getTitle(), "columnName", column.getName())
+        );
         eventPublisher.publishEvent(new TaskCreatedEvent(task, currentUser));
 
         evictDashboardCache(column.getBoard().getId());
@@ -267,6 +278,16 @@ public class TaskServiceImpl implements TaskService {
         }
 
         evictDashboardCache(task.getColumn().getBoard().getId());
+
+        taskActivityService.log(
+                targetColumn.getBoard().getId(),
+                currentUser,
+                "TASK_MOVED",
+                "TASK",
+                task.getId(),
+                currentUser.getName() + " vừa di chuyển thẻ '" + task.getTitle() + "' sang " + targetColumn.getName(),
+                java.util.Map.of("taskTitle", task.getTitle(), "toColumn", targetColumn.getName())
+        );
 
         eventPublisher.publishEvent(new TaskMovedEvent(task, currentUser, sourceColumnId, targetColumnId));
 

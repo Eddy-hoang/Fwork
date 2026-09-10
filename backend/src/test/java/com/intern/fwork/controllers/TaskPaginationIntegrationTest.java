@@ -177,15 +177,17 @@ public class TaskPaginationIntegrationTest {
         // Log 5 activities manually in repository
         for (int i = 1; i <= 5; i++) {
             taskActivityRepository.save(TaskActivity.builder()
-                    .task(task)
+                    .boardId(board.getId())
                     .actor(ownerUser)
-                    .action(TaskActivityAction.TASK_CREATED)
-                    .detail("Action " + i)
+                    .actionType("TASK_CREATED")
+                    .targetType("TASK")
+                    .targetId(task.getId())
+                    .description("Action " + i)
                     .build());
         }
 
         // Retrieve activities paginated: page=0, size=2
-        mockMvc.perform(get("/api/tasks/" + task.getId() + "/activity")
+        mockMvc.perform(get("/api/boards/" + board.getId() + "/activities")
                         .with(authentication(currentAuth))
                         .param("page", "0")
                         .param("size", "2"))

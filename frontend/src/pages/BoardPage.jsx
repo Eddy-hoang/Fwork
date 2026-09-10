@@ -20,7 +20,7 @@ import TaskModal from "../components/board/TaskModal";
 import MembersModal from "../components/board/MembersModal";
 import AIGenerateModal from "../components/ai/AIGenerateModal";
 import AISummaryModal from "../components/ai/AISummaryModal";
-import ActivityFeed from "../components/ActivityFeed";
+import ActivityDrawer from "../components/board/ActivityDrawer";
 
 const BoardPage = () => {
   const { boardId } = useParams();
@@ -233,7 +233,7 @@ const BoardPage = () => {
         canManage={canManage}
         ownerId={b.board?.owner_id}
       />
-      <ActivityFeed open={activityOpen} onClose={() => setActivityOpen(false)} boardId={boardId} />
+      <ActivityDrawer isOpen={activityOpen} onClose={() => setActivityOpen(false)} boardId={boardId} />
       <PromptDialog
         open={addColumnOpen}
         onClose={() => setAddColumnOpen(false)}

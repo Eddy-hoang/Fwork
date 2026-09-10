@@ -9,15 +9,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TaskActivityMapper {
 
-    private final UserMapper userMapper;
-
     public TaskActivityResponse toResponse(TaskActivity activity) {
         return TaskActivityResponse.builder()
                 .id(activity.getId())
-                .taskId(activity.getTask().getId())
-                .actor(userMapper.toResponse(activity.getActor()))
-                .action(activity.getAction())
-                .detail(activity.getDetail())
+                .boardId(activity.getBoardId())
+                .actorId(activity.getActor().getId())
+                .actorName(activity.getActor().getName())
+                .actorAvatar(activity.getActor().getAvatar())
+                .actionType(activity.getActionType())
+                .targetType(activity.getTargetType())
+                .targetId(activity.getTargetId())
+                .description(activity.getDescription())
+                .metadata(activity.getMetadata())
                 .createdAt(activity.getCreatedAt())
                 .build();
     }

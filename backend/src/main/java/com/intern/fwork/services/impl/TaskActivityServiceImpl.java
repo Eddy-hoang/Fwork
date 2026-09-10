@@ -1,23 +1,25 @@
 package com.intern.fwork.services.impl;
 
 import com.intern.fwork.dtos.response.TaskActivityResponse;
-import com.intern.fwork.entities.Task;
+import com.intern.fwork.entities.Board;
 import com.intern.fwork.entities.TaskActivity;
 import com.intern.fwork.entities.User;
 import com.intern.fwork.enums.TaskActivityAction;
-import com.intern.fwork.exceptions.TaskNotFoundException;
+import com.intern.fwork.exceptions.ResourceNotFoundException;
 import com.intern.fwork.mappers.TaskActivityMapper;
 import com.intern.fwork.repositories.BoardRepository;
 import com.intern.fwork.repositories.TaskActivityRepository;
-import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.PermissionService;
 import com.intern.fwork.services.TaskActivityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -26,51 +28,40 @@ import java.util.UUID;
 public class TaskActivityServiceImpl implements TaskActivityService {
 
     private final TaskActivityRepository taskActivityRepository;
-    private final TaskRepository taskRepository;
     private final BoardRepository boardRepository;
     private final TaskActivityMapper taskActivityMapper;
     private final SecurityUtils securityUtils;
     private final PermissionService permissionService;
 
     @Override
-    public void log(Task task, User actor, TaskActivityAction action, String detail) {
+    public void log(UUID boardId, User actor, String actionType, String targetType, UUID targetId, String description, Map<String, Object> metadata) {
         TaskActivity activity = TaskActivity.builder()
-                .task(task)
+                .boardId(boardId)
                 .actor(actor)
-                .action(action)
-                .detail(detail)
+                .actionType(actionType)
+                .targetType(targetType)
+                .targetId(targetId)
+                .description(description)
+                .metadata(metadata)
                 .build();
         taskActivityRepository.save(activity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<TaskActivityResponse> getByTask(UUID taskId, org.springframework.data.domain.Pageable pageable) {
+    public Page<TaskActivityResponse> getByBoard(UUID boardId, Pageable pageable, String actionType) {
         User currentUser = securityUtils.getCurrentUser();
-
-        Task task = taskRepository.findById(taskId)
-                .filter(t -> !t.isArchived() && !t.getColumn().getBoard().isArchived()
-                        && !t.getColumn().getBoard().getWorkspace().isArchived())
-                .orElseThrow(() -> new TaskNotFoundException("Task not found"));
-
-        permissionService.checkWorkspaceAccess(
-                task.getColumn().getBoard().getWorkspace().getId(), currentUser.getId());
-
-        return taskActivityRepository.findByTaskIdOrderByCreatedAtDesc(taskId, pageable)
-                .map(taskActivityMapper::toResponse);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TaskActivityResponse> getByBoard(UUID boardId) {
-        User currentUser = securityUtils.getCurrentUser();
-        com.intern.fwork.entities.Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new com.intern.fwork.exceptions.ResourceNotFoundException("Board not found"));
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
         permissionService.checkWorkspaceAccess(board.getWorkspace().getId(), currentUser.getId());
 
-        return taskActivityRepository.findByBoardId(boardId)
-                .stream()
-                .map(taskActivityMapper::toResponse)
-                .toList();
+        Page<TaskActivity> page;
+        if (actionType != null && !actionType.isBlank()) {
+            page = taskActivityRepository.findByBoardIdAndActionTypeOrderByCreatedAtDesc(boardId, actionType, pageable);
+        } else {
+            page = taskActivityRepository.findByBoardIdOrderByCreatedAtDesc(boardId, pageable);
+        }
+
+        return page.map(taskActivityMapper::toResponse);
     }
 }

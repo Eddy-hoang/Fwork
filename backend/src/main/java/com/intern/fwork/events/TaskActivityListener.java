@@ -1,14 +1,13 @@
 package com.intern.fwork.events;
 
-import com.intern.fwork.entities.Task;
-import com.intern.fwork.entities.User;
-import com.intern.fwork.enums.TaskActivityAction;
 import com.intern.fwork.services.TaskActivityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -19,54 +18,105 @@ public class TaskActivityListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskCreated(TaskCreatedEvent event) {
-        taskActivityService.log(event.getTask(), event.getActor(), TaskActivityAction.TASK_CREATED,
-                "Task '" + event.getTask().getTitle() + "' created");
+        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        taskActivityService.log(
+                event.getTask().getColumn().getBoard().getId(),
+                event.getActor(),
+                "TASK_CREATED",
+                "TASK",
+                event.getTask().getId(),
+                event.getActor().getName() + " vừa tạo thẻ '" + event.getTask().getTitle() + "'",
+                Map.of("taskTitle", event.getTask().getTitle())
+        );
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskUpdated(TaskUpdatedEvent event) {
-        taskActivityService.log(event.getTask(), event.getActor(), TaskActivityAction.TASK_UPDATED,
-                "Task updated: title='" + event.getTask().getTitle() + "'");
+        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        taskActivityService.log(
+                event.getTask().getColumn().getBoard().getId(),
+                event.getActor(),
+                "TASK_UPDATED",
+                "TASK",
+                event.getTask().getId(),
+                event.getActor().getName() + " vừa cập nhật thẻ '" + event.getTask().getTitle() + "'",
+                Map.of("taskTitle", event.getTask().getTitle())
+        );
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskMoved(TaskMovedEvent event) {
-        taskActivityService.log(event.getTask(), event.getActor(), TaskActivityAction.TASK_MOVED,
-                "Task moved to columnId=" + event.getTargetColumnId());
+        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        taskActivityService.log(
+                event.getTask().getColumn().getBoard().getId(),
+                event.getActor(),
+                "TASK_MOVED",
+                "TASK",
+                event.getTask().getId(),
+                event.getActor().getName() + " vừa di chuyển thẻ '" + event.getTask().getTitle() + "'",
+                Map.of("taskTitle", event.getTask().getTitle())
+        );
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskAssigned(TaskAssignedEvent event) {
-        String detail = event.getAssigneeId() != null
-                ? "Assigned to userId=" + event.getAssigneeId()
-                : "Unassigned";
-        TaskActivityAction action = event.getAssigneeId() != null
-                ? TaskActivityAction.TASK_ASSIGNED
-                : TaskActivityAction.TASK_UNASSIGNED;
-        taskActivityService.log(event.getTask(), event.getActor(), action, detail);
+        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        taskActivityService.log(
+                event.getTask().getColumn().getBoard().getId(),
+                event.getActor(),
+                "TASK_ASSIGNED",
+                "TASK",
+                event.getTask().getId(),
+                event.getActor().getName() + " vừa gán thẻ '" + event.getTask().getTitle() + "'",
+                Map.of("taskTitle", event.getTask().getTitle())
+        );
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleCommentAdded(CommentAddedEvent event) {
-        taskActivityService.log(event.getComment().getTask(), event.getActor(), TaskActivityAction.COMMENT_ADDED,
-                "Comment added by " + event.getActor().getName());
+        if (event.getComment() == null || event.getComment().getTask() == null || event.getComment().getTask().getColumn() == null) return;
+        taskActivityService.log(
+                event.getComment().getTask().getColumn().getBoard().getId(),
+                event.getActor(),
+                "COMMENT_ADDED",
+                "COMMENT",
+                event.getComment().getId(),
+                event.getActor().getName() + " vừa bình luận vào thẻ '" + event.getComment().getTask().getTitle() + "'",
+                Map.of("taskId", event.getComment().getTask().getId())
+        );
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleCommentDeleted(CommentDeletedEvent event) {
-        taskActivityService.log(event.getTask(), event.getActor(), TaskActivityAction.COMMENT_DELETED,
-                "Comment deleted by " + event.getActor().getName());
+        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        taskActivityService.log(
+                event.getTask().getColumn().getBoard().getId(),
+                event.getActor(),
+                "COMMENT_DELETED",
+                "TASK",
+                event.getTask().getId(),
+                event.getActor().getName() + " vừa xóa bình luận trong thẻ '" + event.getTask().getTitle() + "'",
+                Map.of("taskId", event.getTask().getId())
+        );
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLabelUpdated(LabelUpdatedEvent event) {
-        taskActivityService.log(event.getTask(), event.getActor(), TaskActivityAction.LABELS_UPDATED,
-                "Labels updated: " + event.getLabels().stream().map(l -> l.getName()).toList());
+        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        taskActivityService.log(
+                event.getTask().getColumn().getBoard().getId(),
+                event.getActor(),
+                "LABELS_UPDATED",
+                "TASK",
+                event.getTask().getId(),
+                event.getActor().getName() + " vừa cập nhật nhãn cho thẻ '" + event.getTask().getTitle() + "'",
+                Map.of("taskTitle", event.getTask().getTitle())
+        );
     }
 }

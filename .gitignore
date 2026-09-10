@@ -22,3 +22,10 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Skills & Agent Tools
+.agents/
+.claude/
+agent/
+.superpowers/
+skills-lock.json

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -15,9 +16,21 @@ import java.util.UUID;
 @AllArgsConstructor
 public class WebSocketEvent {
 
-    private String type;
+    private String eventId;
+    private String eventType;
+    @Builder.Default
+    private Integer version = 1;
     private UUID boardId;
     private UserResponse actor;
-    private Object payload;
+    private TargetRef target;
+    private Map<String, Object> data;
     private LocalDateTime occurredAt;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TargetRef {
+        private String type;
+        private UUID id;
+    }
 }
