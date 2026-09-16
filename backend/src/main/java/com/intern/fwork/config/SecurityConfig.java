@@ -73,7 +73,8 @@ public class SecurityConfig {
                                 "/actuator/info",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api-docs/**"
+                                "/api-docs/**",
+                                "/error"
                         ).permitAll()
                         .requestMatchers(
                                 "/actuator/metrics/**",
