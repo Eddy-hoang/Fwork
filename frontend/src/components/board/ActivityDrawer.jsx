@@ -14,28 +14,16 @@ import {
 } from "lucide-react";
 import api from "../../lib/api";
 
-// Safely parse date strings (handles ISO strings without timezone offsets from backend)
+// Safely parse date strings (treats ISO timestamps without offset from DB as UTC)
 const parseDate = (dateStr) => {
   if (!dateStr) return new Date();
   if (typeof dateStr === "number") return new Date(dateStr);
-
-  // If ISO string without 'Z' or timezone offset (e.g. "2026-09-16T21:28:59")
   if (
     typeof dateStr === "string" &&
     !dateStr.endsWith("Z") &&
     !/[+-]\d{2}:\d{2}$/.test(dateStr)
   ) {
-    const parts = dateStr.split(/[-T:. ]/);
-    if (parts.length >= 6) {
-      return new Date(
-        parseInt(parts[0], 10),
-        parseInt(parts[1], 10) - 1,
-        parseInt(parts[2], 10),
-        parseInt(parts[3], 10),
-        parseInt(parts[4], 10),
-        parseInt(parts[5], 10) || 0
-      );
-    }
+    return new Date(dateStr + "Z");
   }
   return new Date(dateStr);
 };
