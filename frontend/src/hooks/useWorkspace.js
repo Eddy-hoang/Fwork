@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api, { columnApi, workspaceApi } from "../lib/api";
+import api, { boardApi, columnApi, workspaceApi } from "../lib/api";
 import { useBoards } from "../context/BoardsContext";
 
 /**

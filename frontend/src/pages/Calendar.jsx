@@ -38,9 +38,7 @@ const Calendar = () => {
       try {
         const key = format(new Date(d), "yyyy-MM-dd");
         (map[key] ||= []).push(t);
-      } catch {
-        // Ignore invalid date format
-      }
+      } catch (e) {}
     });
     return map;
   }, [myTasks]);

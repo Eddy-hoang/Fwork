@@ -90,9 +90,7 @@ const Topbar = ({ title, subtitle, actions, onCreateBoard }) => {
       await notificationApi.markAllAsRead();
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    } catch {
-      // Ignore notification catch errors
-    }
+    } catch (err) {}
   };
 
   const handleDeleteNotification = async (id, isRead) => {

@@ -1,9 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import { cn } from "../../lib/utils";
 
-const labelCls = "block text-xs font-medium tracking-tight text-zinc-700 dark:text-zinc-300";
-const inputCls =
-  "w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 shadow-xs placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus-visible:ring-zinc-300 transition-colors";
+const labelCls = "block text-xs font-medium tracking-tight text-muted";
 
 export const Input = ({ label, error, className, id, ...props }) => (
   <div className="space-y-1.5">
@@ -14,10 +12,10 @@ export const Input = ({ label, error, className, id, ...props }) => (
     )}
     <input
       id={id}
-      className={cn(inputCls, error && "!border-red-500 focus-visible:!ring-red-500", className)}
+      className={cn("input-base rounded-xl", error && "!border-priority-urgent", className)}
       {...props}
     />
-    {error && <p className="text-xs text-red-500">{error}</p>}
+    {error && <p className="text-xs text-priority-urgent">{error}</p>}
   </div>
 );
 
@@ -31,13 +29,14 @@ export const Textarea = ({ label, error, className, id, rows = 4, ...props }) =>
     <textarea
       id={id}
       rows={rows}
-      className={cn(inputCls, "resize-none", error && "!border-red-500 focus-visible:!ring-red-500", className)}
+      className={cn("input-base resize-none rounded-xl", error && "!border-priority-urgent", className)}
       {...props}
     />
-    {error && <p className="text-xs text-red-500">{error}</p>}
+    {error && <p className="text-xs text-priority-urgent">{error}</p>}
   </div>
 );
 
+// Form select — appearance reset + custom chevron so it matches our inputs.
 export const Select = ({ label, className, id, children, ...props }) => (
   <div className="space-y-1.5">
     {label && (
@@ -48,27 +47,28 @@ export const Select = ({ label, className, id, children, ...props }) => (
     <div className="relative">
       <select
         id={id}
-        className={cn(inputCls, "cursor-pointer appearance-none pr-9", className)}
+        className={cn("input-base cursor-pointer appearance-none rounded-xl pr-10", className)}
         {...props}
       >
         {children}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
     </div>
   </div>
 );
 
+// Compact pill select used in filter bars.
 export const FilterSelect = ({ className, children, ...props }) => (
   <div className="relative">
     <select
       className={cn(
-        "h-8 cursor-pointer appearance-none rounded-md border border-zinc-200 bg-white pl-3 pr-8 text-xs font-medium text-zinc-700 shadow-xs outline-none transition-colors hover:bg-zinc-50 focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-850 dark:focus:border-zinc-700",
+        "h-9 cursor-pointer appearance-none rounded-full border border-line bg-surface pl-4 pr-9 text-xs font-medium text-ink shadow-[var(--shadow-card)] outline-none transition-all duration-200 hover:border-brand-300 focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15",
         className
       )}
       {...props}
     >
       {children}
     </select>
-    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-faint" />
   </div>
 );

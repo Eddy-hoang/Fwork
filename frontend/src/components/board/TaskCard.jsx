@@ -33,10 +33,12 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
       style={style}
       onClick={() => !isDragging && onClick?.(task)}
       className={cn(
-        "group cursor-default rounded-lg border border-zinc-200 bg-white p-3.5 shadow-xs transition-all duration-150 dark:border-zinc-800 dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700",
-        isDone && "bg-zinc-50/60 dark:bg-zinc-950/40 border-zinc-200/60 dark:border-zinc-800/60 opacity-60 shadow-none pointer-events-auto select-none",
+        "group cursor-default rounded-2xl border border-line bg-surface p-4",
+        "shadow-[var(--shadow-card)] transition-all duration-200",
+        "hover:shadow-[var(--shadow-soft)]",
+        isDone && "bg-surface-2/40 border-line/50 opacity-50 shadow-none pointer-events-auto select-none",
         isDragging && "opacity-40",
-        overlay && "rotate-1 cursor-grabbing shadow-md border-zinc-300 dark:border-zinc-700 scale-[1.02]"
+        overlay && "rotate-2 cursor-grabbing shadow-[var(--shadow-lift)]"
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -46,11 +48,11 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
             title="Drag to reorder"
             aria-label="Drag to reorder task"
             onClick={(e) => e.stopPropagation()}
-            className="cursor-grab active:cursor-grabbing text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-0.5 -ml-1 rounded"
+            className="cursor-grab active:cursor-grabbing text-faint hover:text-ink transition-colors p-1 -ml-1 rounded focus-ring"
             {...attributes}
             {...listeners}
           >
-            <GripVertical className="h-3.5 w-3.5 shrink-0" />
+            <GripVertical className="h-4 w-4 shrink-0" />
           </button>
           <PriorityTag priority={task.priority} className={cn(isDone && "opacity-40")} />
         </div>
@@ -60,13 +62,13 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
             onClick={handleCheckboxClick}
             onPointerDown={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
-            className="z-10 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-0.5"
+            className="z-10 text-faint hover:text-brand-500 transition-colors p-1 -m-1"
             title={isDone ? "Mark as incomplete" : "Mark as completed"}
           >
             {isDone ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 fill-emerald-500/10" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 fill-emerald-500/20" />
             ) : (
-              <Circle className="h-4 w-4 hover:stroke-zinc-600 dark:hover:stroke-zinc-300" />
+              <Circle className="h-4 w-4 hover:stroke-brand-500" />
             )}
           </button>
         )}
@@ -74,36 +76,36 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
 
       <p
         className={cn(
-          "mt-2 text-xs font-semibold leading-snug tracking-tight text-zinc-900 dark:text-zinc-50",
-          isDone && "text-zinc-400 line-through opacity-70"
+          "mt-2.5 text-[15px] font-semibold leading-snug tracking-tight",
+          isDone ? "text-muted line-through opacity-60" : "text-ink"
         )}
       >
         {task.title}
       </p>
 
       {task.description && (
-        <p className={cn("mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400", isDone && "line-through opacity-60")}>
+        <p className={cn("mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted", isDone && "line-through opacity-50")}>
           {task.description}
         </p>
       )}
 
-      <div className={cn("mt-3 flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800/80 pt-2.5", isDone && "opacity-50")}>
+      <div className={cn("mt-3.5 flex items-center justify-between border-t border-line/70 pt-3", isDone && "opacity-40")}>
         {task.assignee_id ? (
           <div className="flex items-center gap-1.5">
             <Avatar name={task.assignee_name} id={task.assignee_id} src={task.assignee_avatar} size="xs" />
-            <span className="max-w-[6.5rem] truncate text-[11px] font-medium text-zinc-600 dark:text-zinc-400">{task.assignee_name}</span>
+            <span className="max-w-[7rem] truncate text-[11px] text-muted">{task.assignee_name}</span>
           </div>
         ) : (
-          <span className="text-[10px] text-zinc-400">Unassigned</span>
+          <span className="text-[11px] text-faint">Unassigned</span>
         )}
 
         {due && (
           <span
             className={cn(
-              "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium tabular-nums",
+              "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium tabular",
               due.overdue && !isDone
-                ? "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400"
-                : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                ? "bg-priority-urgent/10 text-priority-urgent"
+                : "bg-surface-2 text-muted"
             )}
           >
             <Calendar className="h-3 w-3" /> {due.label}

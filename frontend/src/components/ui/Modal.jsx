@@ -17,41 +17,41 @@ const Modal = ({ open, onClose, title, description, children, footer, size = "md
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:p-6"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:p-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs" onClick={onClose} />
+          <div className="fixed inset-0 bg-ink/35 backdrop-blur-sm" onClick={onClose} />
           <motion.div
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? "modal-title" : undefined}
             className={cn(
-              "relative z-10 mt-12 w-full rounded-xl border border-zinc-200 bg-white p-6 shadow-lg dark:border-zinc-800 dark:bg-zinc-900",
+              "card relative z-10 mt-8 w-full rounded-3xl p-6 shadow-[var(--shadow-lift)]",
               widths[size]
             )}
-            initial={{ opacity: 0, scale: 0.98, y: 8 }}
+            initial={{ opacity: 0, scale: 0.97, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98, y: 6 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
           >
             {(title || onClose) && (
-              <div className="mb-4 flex items-start justify-between gap-4 border-b border-zinc-100 pb-3 dark:border-zinc-800/80">
+              <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  {title && <h2 id="modal-title" className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{title}</h2>}
-                  {description && <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{description}</p>}
+                  {title && <h2 id="modal-title" className="font-display text-lg font-semibold tracking-tight">{title}</h2>}
+                  {description && <p className="mt-1 text-sm text-muted">{description}</p>}
                 </div>
                 <button
                   onClick={onClose}
-                  className="-mr-1 -mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                  className="-mr-1 -mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-ink"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4.5 w-4.5" />
                 </button>
               </div>
             )}
             {children}
-            {footer && <div className="mt-6 flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800/80">{footer}</div>}
+            {footer && <div className="mt-6 flex justify-end gap-2">{footer}</div>}
           </motion.div>
         </motion.div>
       )}
