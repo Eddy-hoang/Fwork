@@ -364,6 +364,8 @@ export const useBoard = (boardId) => {
     presence,
     setBoard,
     setMembers,
+    setRole,
+    setPresence,
     createTask,
     updateTask,
     deleteTask,

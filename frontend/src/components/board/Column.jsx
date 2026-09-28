@@ -37,14 +37,13 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
   return (
     <div
       className={cn(
-        "flex h-full w-[330px] shrink-0 flex-col rounded-3xl p-2.5 transition-colors",
-        isOver && "ring-2 ring-inset"
+        "flex h-full w-[310px] shrink-0 flex-col rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 transition-colors dark:border-zinc-800 dark:bg-zinc-900/40",
+        isOver && "ring-2 ring-zinc-950 dark:ring-zinc-200"
       )}
-      style={{ backgroundColor: accent.soft, ...(isOver ? { "--tw-ring-color": accent.ring } : {}) }}
     >
       {/* Header */}
-      <div className="mb-2 flex items-center gap-2 px-1.5 pt-1">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: accent.dot }} />
+      <div className="mb-2.5 flex items-center gap-2 px-1 pt-0.5">
+        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accent.dot }} />
         {editing ? (
           <input
             autoFocus
@@ -52,41 +51,41 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
             onChange={(e) => setTitle(e.target.value)}
             onBlur={commitRename}
             onKeyDown={(e) => e.key === "Enter" && commitRename()}
-            className="w-full rounded bg-surface px-2 py-0.5 text-sm font-semibold outline-none"
+            className="w-full rounded border border-zinc-300 bg-white px-2 py-0.5 text-xs font-semibold text-zinc-900 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           />
         ) : (
-          <h3 className="cursor-text font-display text-[15px] font-bold tracking-tight text-ink" onDoubleClick={() => setEditing(true)}>
+          <h3 className="cursor-text text-xs font-semibold tracking-tight text-zinc-900 dark:text-zinc-50" onDoubleClick={() => setEditing(true)}>
             {column.title}
           </h3>
         )}
-        <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-semibold tabular text-muted shadow-[var(--shadow-card)]">
+        <span className="rounded-md bg-zinc-200/60 dark:bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400">
           {tasks.length}
         </span>
 
         <div className="ml-auto flex items-center gap-0.5">
           <button
             onClick={() => onAddTask(column.id)}
-            className="rounded-lg p-1.5 text-faint transition-colors hover:bg-surface hover:text-ink"
+            className="rounded-md p-1 text-zinc-400 transition-colors hover:bg-zinc-200/60 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
             title="Add task"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
           </button>
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen((o) => !o)}
-              className="rounded-lg p-1.5 text-faint transition-colors hover:bg-surface hover:text-ink"
+              className="rounded-md p-1 text-zinc-400 transition-colors hover:bg-zinc-200/60 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
             {menuOpen && (
-              <div className="card animate-in absolute right-0 z-10 mt-1 w-44 rounded-2xl p-1.5 shadow-[var(--shadow-lift)]">
+              <div className="absolute right-0 z-20 mt-1 w-40 rounded-lg border border-zinc-200 bg-white p-1 shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                 <MenuItem icon={Sparkles} onClick={() => { setMenuOpen(false); onAiGenerate(column.id); }}>
                   Generate with AI
                 </MenuItem>
                 <MenuItem icon={Pencil} onClick={() => { setMenuOpen(false); setEditing(true); }}>
                   Rename
                 </MenuItem>
-                <div className="my-1 border-t" />
+                <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
                 <MenuItem icon={Trash2} danger onClick={() => { setMenuOpen(false); setConfirmOpen(true); }}>
                   Delete column
                 </MenuItem>
@@ -97,7 +96,7 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
       </div>
 
       {/* Drop zone */}
-      <div ref={setNodeRef} className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-0.5 pb-1 column-scrollbar">
+      <div ref={setNodeRef} className="flex flex-1 flex-col gap-2 overflow-y-auto px-0.5 pb-1 no-scrollbar">
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <TaskCard
@@ -111,7 +110,7 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
 
         <button
           onClick={() => onAddTask(column.id)}
-          className="flex items-center justify-center gap-1.5 rounded-2xl border border-dashed border-line/80 bg-surface/40 py-2.5 text-xs font-medium text-faint transition-colors hover:border-ink/20 hover:bg-surface hover:text-muted"
+          className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-300 py-2 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-700 dark:border-zinc-750 dark:hover:border-zinc-600 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
         >
           <Plus className="h-3.5 w-3.5" /> Add task
         </button>
@@ -134,8 +133,8 @@ const MenuItem = ({ icon: Icon, children, onClick, danger }) => (
   <button
     onClick={onClick}
     className={cn(
-      "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors hover:bg-surface-2",
-      danger ? "text-priority-urgent" : "text-muted hover:text-ink"
+      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800",
+      danger ? "text-red-600 dark:text-red-400" : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
     )}
   >
     <Icon className="h-3.5 w-3.5" /> {children}
