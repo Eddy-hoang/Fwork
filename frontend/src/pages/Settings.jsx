@@ -32,8 +32,8 @@ const Switch = ({ checked, onChange }) => (
   </button>
 );
 
-const Card = ({ title, description, children }) => (
-  <section className="rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]">
+const Card = ({ title, description, children, className }) => (
+  <section className={cn("rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)]", className)}>
     <h3 className="font-display text-sm font-semibold tracking-tight">{title}</h3>
     {description && <p className="mt-1 text-xs text-muted">{description}</p>}
     <div className="mt-5">{children}</div>
@@ -261,25 +261,26 @@ const Settings = () => {
             </div>
           </Card>
 
-          {/* About */}
-          <Card title={t("About")}>
-            <div className="flex items-center gap-3">
-              <div className="brand-gradient flex h-10 w-10 items-center justify-center rounded-md shadow-[var(--shadow-brand)]">
-                <Zap className="h-5 w-5 fill-white text-white" />
+          {/* About & Account */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Card title={t("About")} className="flex flex-col justify-between">
+              <div className="flex items-center gap-3">
+                <div className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-[var(--shadow-brand)]">
+                  <Zap className="h-5 w-5 fill-white text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-ink">Fwork</p>
+                  <p className="text-xs text-muted">{t("AboutDesc")}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-ink">Fwork</p>
-                <p className="text-xs text-muted">{t("AboutDesc")}</p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          {/* Account */}
-          <Card title={t("Account")} description={t("AccountDesc")}>
-            <Button variant="danger" onClick={() => { logout(); navigate("/login"); }}>
-              <LogOut className="h-4 w-4" /> {t("Sign out")}
-            </Button>
-          </Card>
+            <Card title={t("Account")} description={t("AccountDesc")} className="flex flex-col justify-between">
+              <Button variant="danger" onClick={() => { logout(); navigate("/login"); }} className="w-full sm:w-auto">
+                <LogOut className="h-4 w-4" /> {t("Sign out")}
+              </Button>
+            </Card>
+          </div>
         </div>
       </div>
     </>
