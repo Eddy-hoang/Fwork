@@ -102,6 +102,7 @@ const formatDescription = (actorName, description) => {
 export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState("ALL");
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -111,6 +112,7 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
       if (!boardId) return;
       try {
         setLoading(true);
+        setError(null);
         const actionParam = filterType !== "ALL" ? filterType : "";
         const res = await api.get(
           `/boards/${boardId}/activities?page=${pageNum}&size=20${
@@ -131,6 +133,7 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
         setHasMore(pageNum < totalPages - 1);
       } catch (err) {
         console.error("Failed to load activities:", err);
+        setError(err.message || "Không thể tải lịch sử hoạt động");
       } finally {
         setLoading(false);
       }
@@ -261,6 +264,21 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                ) : error && activities.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                    <p className="text-sm font-medium text-rose-500 mb-1">
+                      {error}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                      Máy chủ gặp lỗi khi lấy dữ liệu hoạt động.
+                    </p>
+                    <button
+                      onClick={() => fetchActivities(0, filter, false)}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                    >
+                      Thử lại
+                    </button>
                   </div>
                 ) : activities.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-8">

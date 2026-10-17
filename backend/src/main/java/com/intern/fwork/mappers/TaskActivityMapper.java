@@ -10,12 +10,13 @@ import org.springframework.stereotype.Component;
 public class TaskActivityMapper {
 
     public TaskActivityResponse toResponse(TaskActivity activity) {
+        var actor = activity.getActor();
         return TaskActivityResponse.builder()
                 .id(activity.getId())
                 .boardId(activity.getBoardId())
-                .actorId(activity.getActor().getId())
-                .actorName(activity.getActor().getName())
-                .actorAvatar(activity.getActor().getAvatar())
+                .actorId(actor != null ? actor.getId() : null)
+                .actorName(actor != null ? actor.getName() : "Người dùng")
+                .actorAvatar(actor != null ? actor.getAvatar() : null)
                 .actionType(activity.getActionType())
                 .targetType(activity.getTargetType())
                 .targetId(activity.getTargetId())
