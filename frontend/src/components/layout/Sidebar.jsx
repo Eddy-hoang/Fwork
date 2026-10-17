@@ -196,24 +196,6 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
           </button>
         </nav>
 
-        {/* Promo (expanded only) */}
-        {!collapsed && (
-          <div className="px-3 pt-3">
-            <button
-              onClick={onCreateBoard}
-              className="brand-gradient relative w-full overflow-hidden rounded-2xl p-4 text-left text-white shadow-[var(--shadow-brand)]"
-            >
-              <div className="absolute -right-6 -top-8 h-20 w-20 rounded-full bg-white/15 blur-xl" />
-              <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-white/20 backdrop-blur">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <p className="relative mt-3 font-display text-sm font-semibold tracking-tight">{t("Plan with AI")}</p>
-              <p className="relative mt-0.5 text-[11px] leading-relaxed text-white/80">
-                {t("Let AI plan desc")}
-              </p>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* User (pinned at bottom) */}

@@ -67,10 +67,10 @@ export const useBoard = (boardId) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const loadBoardData = useCallback(async () => {
+  const loadBoardData = useCallback(async ({ silent = false } = {}) => {
     if (!boardId) return;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError(null);
 
       // Fetch board, columns, and tasks in parallel
@@ -107,7 +107,7 @@ export const useBoard = (boardId) => {
       console.error("Error loading board:", err);
       setError(err.message || "Failed to load board");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [boardId]);
 
@@ -120,26 +120,32 @@ export const useBoard = (boardId) => {
   useEffect(() => {
     if (!boardId) return;
     const subscription = subscribeBoard(boardId, (wsEvent) => {
+      const targetTaskId =
+        (typeof wsEvent.payload === "string" ? wsEvent.payload : null) ||
+        wsEvent.payload?.id ||
+        wsEvent.target?.id ||
+        wsEvent.targetId;
+
       switch (wsEvent.type) {
         case "TASK_CREATED":
         case "TASK_UPDATED":
         case "TASK_MOVED":
         case "TASK_ASSIGNED":
         case "LABELS_UPDATED":
-          if (typeof wsEvent.payload === "string") {
-            taskApi.get(wsEvent.payload).then(upsertTask).catch(() => loadBoardData());
-          } else if (wsEvent.payload && wsEvent.payload.id) {
+          if (wsEvent.payload && typeof wsEvent.payload === "object" && wsEvent.payload.id) {
             upsertTask(wsEvent.payload);
+          } else if (targetTaskId) {
+            taskApi.get(targetTaskId).then(upsertTask).catch(() => loadBoardData({ silent: true }));
           } else {
-            loadBoardData();
+            loadBoardData({ silent: true });
           }
           break;
         case "COMMENT_ADDED":
         case "COMMENT_DELETED":
-          loadBoardData();
+          loadBoardData({ silent: true });
           break;
         default:
-          loadBoardData();
+          loadBoardData({ silent: true });
       }
     });
 
