@@ -18,4 +18,13 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
 
     @Query("SELECT DISTINCT b FROM Board b JOIN FETCH b.workspace w JOIN w.members m WHERE m.user.id = :userId AND b.isArchived = false AND w.isArchived = false")
     List<Board> findAllByMemberUserId(@Param("userId") UUID userId);
+
+    /**
+     * Batch board count for multiple workspaces in a single GROUP BY query.
+     * Used by getMyWorkspaces() to eliminate N+1 count queries.
+     * Returns a list of [workspaceId, boardCount] pairs.
+     */
+    @Query("SELECT b.workspace.id, COUNT(b) FROM Board b WHERE b.workspace.id IN :workspaceIds AND b.isArchived = false GROUP BY b.workspace.id")
+    List<Object[]> countBoardsByWorkspaceIds(@Param("workspaceIds") List<UUID> workspaceIds);
 }
+

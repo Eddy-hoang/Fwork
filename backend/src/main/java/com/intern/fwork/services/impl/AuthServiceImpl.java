@@ -31,6 +31,7 @@ import com.intern.fwork.repositories.WorkspaceMemberRepository;
 import com.intern.fwork.entities.Workspace;
 import com.intern.fwork.entities.WorkspaceMember;
 import com.intern.fwork.enums.WorkspaceRole;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Map;
 import java.util.UUID;
 
@@ -48,6 +49,9 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id:}")
+    private String googleClientId;
 
     @Override
     public LoginResponse register(RegisterRequest request) {
@@ -180,6 +184,16 @@ public class AuthServiceImpl implements AuthService {
                 throw new org.springframework.security.access.AccessDeniedException("Invalid Google token");
             }
 
+            // SECURITY: Validate the 'aud' claim to prevent cross-app token replay attacks.
+            // A valid Google ID token issued for a different app must NOT be accepted here.
+            if (googleClientId != null && !googleClientId.isBlank()) {
+                String tokenAud = (String) payload.get("aud");
+                if (!googleClientId.equals(tokenAud)) {
+                    log.warn("Google token audience mismatch: expected={}, got={}", googleClientId, tokenAud);
+                    throw new org.springframework.security.access.AccessDeniedException("Invalid Google token: audience mismatch");
+                }
+            }
+
             String email = (String) payload.get("email");
             String name = (String) payload.get("name");
             String picture = (String) payload.get("picture");
@@ -237,9 +251,15 @@ public class AuthServiceImpl implements AuthService {
         if (query == null || query.trim().isEmpty()) {
             return java.util.Collections.emptyList();
         }
+        // Guard: require at least 2 characters to avoid scanning the entire table
         String q = query.trim();
+        if (q.length() < 2) {
+            return java.util.Collections.emptyList();
+        }
+        // Limit results to 20 to prevent full-table-scan data exposure
         return userRepository.findByEmailContainingIgnoreCaseOrNameContainingIgnoreCase(q, q)
                 .stream()
+                .limit(20)
                 .map(userMapper::toResponse)
                 .toList();
     }

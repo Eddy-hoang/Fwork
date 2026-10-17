@@ -83,15 +83,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // Rate limiting filter
-                .addFilterBefore(
-                        rateLimitingFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                )
-                // JWT Filter
+                // JWT Filter must run FIRST to populate SecurityContext
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
+                )
+                // Rate limiting filter runs AFTER JWT so auth.getName() is available
+                .addFilterAfter(
+                        rateLimitingFilter,
+                        com.intern.fwork.security.JwtAuthenticationFilter.class
                 );
 
         return http.build();

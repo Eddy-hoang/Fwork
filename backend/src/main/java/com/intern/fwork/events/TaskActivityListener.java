@@ -18,9 +18,10 @@ public class TaskActivityListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskCreated(TaskCreatedEvent event) {
-        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        // Use pre-resolved boardId to avoid LazyInitializationException on async thread
+        if (event.getBoardId() == null || event.getTask() == null) return;
         taskActivityService.log(
-                event.getTask().getColumn().getBoard().getId(),
+                event.getBoardId(),
                 event.getActor(),
                 "TASK_CREATED",
                 "TASK",
@@ -33,9 +34,9 @@ public class TaskActivityListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskUpdated(TaskUpdatedEvent event) {
-        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        if (event.getBoardId() == null || event.getTask() == null) return;
         taskActivityService.log(
-                event.getTask().getColumn().getBoard().getId(),
+                event.getBoardId(),
                 event.getActor(),
                 "TASK_UPDATED",
                 "TASK",
@@ -48,24 +49,24 @@ public class TaskActivityListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskMoved(TaskMovedEvent event) {
-        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        if (event.getBoardId() == null || event.getTask() == null) return;
         taskActivityService.log(
-                event.getTask().getColumn().getBoard().getId(),
+                event.getBoardId(),
                 event.getActor(),
                 "TASK_MOVED",
                 "TASK",
                 event.getTask().getId(),
                 event.getActor().getName() + " vừa di chuyển thẻ '" + event.getTask().getTitle() + "'",
-                Map.of("taskTitle", event.getTask().getTitle())
+                Map.of("taskTitle", event.getTask().getTitle(), "targetColumnId", event.getTargetColumnId())
         );
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskAssigned(TaskAssignedEvent event) {
-        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        if (event.getBoardId() == null || event.getTask() == null) return;
         taskActivityService.log(
-                event.getTask().getColumn().getBoard().getId(),
+                event.getBoardId(),
                 event.getActor(),
                 "TASK_ASSIGNED",
                 "TASK",
@@ -108,9 +109,9 @@ public class TaskActivityListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLabelUpdated(LabelUpdatedEvent event) {
-        if (event.getTask() == null || event.getTask().getColumn() == null) return;
+        if (event.getBoardId() == null || event.getTask() == null) return;
         taskActivityService.log(
-                event.getTask().getColumn().getBoard().getId(),
+                event.getBoardId(),
                 event.getActor(),
                 "LABELS_UPDATED",
                 "TASK",
@@ -120,3 +121,4 @@ public class TaskActivityListener {
         );
     }
 }
+

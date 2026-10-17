@@ -7,13 +7,19 @@ import com.intern.fwork.entities.BoardColumn;
 import com.intern.fwork.entities.Task;
 import com.intern.fwork.entities.User;
 import com.intern.fwork.enums.Priority;
+import com.intern.fwork.events.TaskCreatedEvent;
 import com.intern.fwork.mappers.TaskMapper;
 import com.intern.fwork.repositories.BoardColumnRepository;
+import com.intern.fwork.repositories.BoardRepository;
 import com.intern.fwork.repositories.TaskRepository;
 import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.AIService;
+import com.intern.fwork.services.PermissionService;
+import com.intern.fwork.exceptions.BoardNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +33,30 @@ public class AIServiceImpl implements AIService {
 
     private final TaskRepository taskRepository;
     private final BoardColumnRepository boardColumnRepository;
+    private final BoardRepository boardRepository;
     private final TaskMapper taskMapper;
     private final SecurityUtils securityUtils;
+    private final PermissionService permissionService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final CacheManager cacheManager;
     private final ChatModel chatModel;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private void evictDashboardCache(UUID boardId) {
+        if (cacheManager.getCache("dashboard") != null) {
+            cacheManager.getCache("dashboard").evict(boardId);
+        }
+    }
+
     @Override
     public Map<String, Object> generateTasks(UUID boardId, String goal, Integer count, UUID columnId) {
+        // RBAC: verify current user has access to this board's workspace
+        User currentUser = securityUtils.getCurrentUser();
+        com.intern.fwork.entities.Board board = boardRepository.findById(boardId)
+                .filter(b -> !b.isArchived() && !b.getWorkspace().isArchived())
+                .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+        permissionService.checkWorkspaceAccess(board.getWorkspace().getId(), currentUser.getId());
+
         int n = (count == null || count <= 0) ? 6 : Math.min(count, 10);
         String promptGoal = (goal != null && !goal.isBlank()) ? goal.trim() : "Project Deliverables";
 
@@ -62,7 +85,6 @@ public class AIServiceImpl implements AIService {
                 if (columnId != null) {
                     BoardColumn column = boardColumnRepository.findById(columnId).orElse(null);
                     if (column != null) {
-                        User currentUser = securityUtils.getCurrentUser();
                         int currentPos = taskRepository.findByColumnIdAndIsArchivedFalseOrderByPositionAsc(columnId).size();
 
                         for (Map<String, String> t : templates) {
@@ -86,6 +108,8 @@ public class AIServiceImpl implements AIService {
                                     .build();
 
                             Task saved = taskRepository.save(task);
+                            // Publish event for real-time WebSocket & activity log
+                            eventPublisher.publishEvent(new TaskCreatedEvent(saved, currentUser));
                             TaskResponse response = taskMapper.toResponse(saved);
 
                             Map<String, Object> map = new HashMap<>();
@@ -97,6 +121,9 @@ public class AIServiceImpl implements AIService {
                             map.put("column_id", columnId);
                             resultTasks.add(map);
                         }
+
+                        // Evict dashboard cache after bulk AI task creation
+                        evictDashboardCache(boardId);
 
                         Map<String, Object> res = new HashMap<>();
                         res.put("tasks", resultTasks);
@@ -135,7 +162,6 @@ public class AIServiceImpl implements AIService {
         if (columnId != null) {
             BoardColumn column = boardColumnRepository.findById(columnId).orElse(null);
             if (column != null) {
-                User currentUser = securityUtils.getCurrentUser();
                 int currentPos = taskRepository.findByColumnIdAndIsArchivedFalseOrderByPositionAsc(columnId).size();
 
                 for (int i = 0; i < Math.min(n, templates.size()); i++) {
@@ -158,6 +184,8 @@ public class AIServiceImpl implements AIService {
                             .build();
 
                     Task saved = taskRepository.save(task);
+                    // Publish event for real-time WebSocket & activity log
+                    eventPublisher.publishEvent(new TaskCreatedEvent(saved, currentUser));
                     TaskResponse response = taskMapper.toResponse(saved);
 
                     Map<String, Object> map = new HashMap<>();
@@ -169,6 +197,8 @@ public class AIServiceImpl implements AIService {
                     map.put("column_id", columnId);
                     resultTasks.add(map);
                 }
+                // Evict dashboard cache after bulk AI task creation (fallback path)
+                evictDashboardCache(boardId);
             }
         } else {
             for (int i = 0; i < Math.min(n, templates.size()); i++) {
@@ -188,6 +218,13 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public List<Map<String, Object>> breakdownTask(UUID boardId, UUID taskId) {
+        // RBAC: verify current user has access to this board's workspace
+        User currentUser = securityUtils.getCurrentUser();
+        com.intern.fwork.entities.Board boardEntity = boardRepository.findById(boardId)
+                .filter(b -> !b.isArchived() && !b.getWorkspace().isArchived())
+                .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+        permissionService.checkWorkspaceAccess(boardEntity.getWorkspace().getId(), currentUser.getId());
+
         Task task = null;
         if (taskId != null) {
             task = taskRepository.findById(taskId).orElse(null);
@@ -245,6 +282,13 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public Map<String, Object> getSprintSummary(UUID boardId) {
+        // RBAC: verify current user has access to this board's workspace
+        User currentUser = securityUtils.getCurrentUser();
+        com.intern.fwork.entities.Board boardForAuth = boardRepository.findById(boardId)
+                .filter(b -> !b.isArchived() && !b.getWorkspace().isArchived())
+                .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+        permissionService.checkWorkspaceAccess(boardForAuth.getWorkspace().getId(), currentUser.getId());
+
         List<BoardColumn> columns = boardColumnRepository.findByBoardIdOrderByPositionAsc(boardId);
         List<Task> allTasks = taskRepository.findByBoardId(boardId);
 

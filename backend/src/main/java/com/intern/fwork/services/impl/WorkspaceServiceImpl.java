@@ -91,19 +91,38 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
         List<WorkspaceMember> memberships = workspaceMemberRepository.findByUserId(currentUser.getId());
 
-        return memberships.stream()
+        // Filter out archived workspaces upfront
+        List<WorkspaceMember> activeMemberships = memberships.stream()
+                .filter(m -> !m.getWorkspace().isArchived())
+                .toList();
+
+        if (activeMemberships.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        List<UUID> workspaceIds = activeMemberships.stream()
+                .map(m -> m.getWorkspace().getId())
+                .toList();
+
+        // Batch fetch member counts in a single GROUP BY query — eliminates N+1
+        java.util.Map<UUID, Long> memberCountMap = new java.util.HashMap<>();
+        workspaceMemberRepository.countMembersByWorkspaceIds(workspaceIds)
+                .forEach(row -> memberCountMap.put((UUID) row[0], (Long) row[1]));
+
+        // Batch fetch board counts in a single GROUP BY query — eliminates N+1
+        java.util.Map<UUID, Long> boardCountMap = new java.util.HashMap<>();
+        boardRepository.countBoardsByWorkspaceIds(workspaceIds)
+                .forEach(row -> boardCountMap.put((UUID) row[0], (Long) row[1]));
+
+        return activeMemberships.stream()
                 .map(membership -> {
                     Workspace workspace = membership.getWorkspace();
-                    if (workspace.isArchived()) {
-                        return null;
-                    }
                     WorkspaceResponse response = workspaceMapper.toResponse(workspace);
-                    response.setMemberCount(workspaceMemberRepository.countByWorkspaceId(workspace.getId()));
-                    response.setBoardCount(boardRepository.countByWorkspaceIdAndIsArchivedFalse(workspace.getId()));
+                    response.setMemberCount(memberCountMap.getOrDefault(workspace.getId(), 0L));
+                    response.setBoardCount(boardCountMap.getOrDefault(workspace.getId(), 0L));
                     response.setCurrentUserRole(membership.getRole());
                     return response;
                 })
-                .filter(java.util.Objects::nonNull)
                 .toList();
     }
 

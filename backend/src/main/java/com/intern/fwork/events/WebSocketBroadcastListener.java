@@ -23,41 +23,37 @@ public class WebSocketBroadcastListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskCreated(TaskCreatedEvent event) {
-        UUID boardId = resolveBoardId(event);
-        if (boardId == null) return;
-        broadcast(boardId, "TASK_CREATED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
+        // Use pre-resolved boardId — avoids LazyInitializationException on async thread
+        if (event.getBoardId() == null) return;
+        broadcast(event.getBoardId(), "TASK_CREATED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskUpdated(TaskUpdatedEvent event) {
-        UUID boardId = resolveBoardId(event);
-        if (boardId == null) return;
-        broadcast(boardId, "TASK_UPDATED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
+        if (event.getBoardId() == null) return;
+        broadcast(event.getBoardId(), "TASK_UPDATED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskMoved(TaskMovedEvent event) {
-        UUID boardId = resolveBoardId(event);
-        if (boardId == null) return;
-        broadcast(boardId, "TASK_MOVED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
+        if (event.getBoardId() == null) return;
+        broadcast(event.getBoardId(), "TASK_MOVED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTaskAssigned(TaskAssignedEvent event) {
-        UUID boardId = resolveBoardId(event);
-        if (boardId == null) return;
-        broadcast(boardId, "TASK_ASSIGNED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
+        if (event.getBoardId() == null) return;
+        broadcast(event.getBoardId(), "TASK_ASSIGNED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLabelUpdated(LabelUpdatedEvent event) {
-        UUID boardId = resolveBoardId(event);
-        if (boardId == null) return;
-        broadcast(boardId, "LABELS_UPDATED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
+        if (event.getBoardId() == null) return;
+        broadcast(event.getBoardId(), "LABELS_UPDATED", userMapper.toResponse(event.getActor()), "TASK", event.getTask().getId(), Map.of("taskTitle", event.getTask().getTitle()));
     }
 
     @Async
@@ -90,14 +86,6 @@ public class WebSocketBroadcastListener {
         messagingTemplate.convertAndSend("/topic/boards/" + boardId, wsEvent);
     }
 
-    private UUID resolveBoardId(TaskEvent event) {
-        try {
-            return event.getTask().getColumn().getBoard().getId();
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
     private UUID resolveCommentBoardId(CommentAddedEvent event) {
         try {
             return event.getComment().getTask().getColumn().getBoard().getId();
@@ -114,3 +102,4 @@ public class WebSocketBroadcastListener {
         }
     }
 }
+

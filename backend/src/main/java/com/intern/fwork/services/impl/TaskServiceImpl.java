@@ -100,15 +100,8 @@ public class TaskServiceImpl implements TaskService {
                 .build();
 
         TaskResponse response = taskMapper.toResponse(taskRepository.save(task));
-        taskActivityService.log(
-                column.getBoard().getId(),
-                currentUser,
-                "TASK_CREATED",
-                "TASK",
-                task.getId(),
-                currentUser.getName() + " vừa tạo thẻ '" + task.getTitle() + "'",
-                java.util.Map.of("taskTitle", task.getTitle(), "columnName", column.getName())
-        );
+        // NOTE: Do NOT call taskActivityService.log() directly here.
+        // TaskActivityListener handles logging AFTER_COMMIT to avoid duplicate entries.
         eventPublisher.publishEvent(new TaskCreatedEvent(task, currentUser));
 
         evictDashboardCache(column.getBoard().getId());
@@ -279,16 +272,8 @@ public class TaskServiceImpl implements TaskService {
 
         evictDashboardCache(task.getColumn().getBoard().getId());
 
-        taskActivityService.log(
-                targetColumn.getBoard().getId(),
-                currentUser,
-                "TASK_MOVED",
-                "TASK",
-                task.getId(),
-                currentUser.getName() + " vừa di chuyển thẻ '" + task.getTitle() + "' sang " + targetColumn.getName(),
-                java.util.Map.of("taskTitle", task.getTitle(), "toColumn", targetColumn.getName())
-        );
-
+        // NOTE: Do NOT call taskActivityService.log() directly here.
+        // TaskActivityListener handles logging AFTER_COMMIT to avoid duplicate entries.
         eventPublisher.publishEvent(new TaskMovedEvent(task, currentUser, sourceColumnId, targetColumnId));
 
         return taskMapper.toResponse(task);
