@@ -169,7 +169,7 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-slate-950/40 dark:bg-slate-950/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -180,19 +180,19 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 280 }}
-              className="w-screen max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col"
+              className="w-screen max-w-md bg-surface border-l border-line shadow-2xl flex flex-col text-ink"
             >
               {/* Header */}
-              <div className="p-5 border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur flex items-center justify-between">
+              <div className="p-5 border-b border-line bg-surface/90 backdrop-blur flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20">
+                  <div className="p-2.5 rounded-2xl bg-brand-50 text-brand-700 dark:bg-brand-50 dark:text-brand-400 border border-brand-100 dark:border-brand-300/30">
                     <Activity className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <h2 className="text-base font-semibold text-ink flex items-center gap-2">
                       Lịch sử hoạt động
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-muted">
                       Nhật ký thay đổi trên bảng công việc
                     </p>
                   </div>
@@ -200,20 +200,20 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
 
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                  className="p-2 rounded-xl text-muted hover:text-ink hover:bg-surface-2 transition-all border border-transparent hover:border-line"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Filter Tabs */}
-              <div className="px-5 py-3.5 flex gap-2 border-b border-slate-200 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/50 text-xs overflow-x-auto no-scrollbar">
+              <div className="px-5 py-3.5 flex gap-2 border-b border-line bg-surface-2/60 text-xs overflow-x-auto no-scrollbar">
                 <button
                   onClick={() => handleFilterChange("ALL")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-all ${
                     filter === "ALL"
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60"
+                      ? "bg-brand-500 text-white shadow-md shadow-brand-500/20"
+                      : "text-muted hover:text-ink hover:bg-surface"
                   }`}
                 >
                   <ListFilter className="w-3.5 h-3.5" />
@@ -221,10 +221,10 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                 </button>
                 <button
                   onClick={() => handleFilterChange("TASK_MOVED")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-all ${
                     filter === "TASK_MOVED"
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60"
+                      ? "bg-brand-500 text-white shadow-md shadow-brand-500/20"
+                      : "text-muted hover:text-ink hover:bg-surface"
                   }`}
                 >
                   <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -232,10 +232,10 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                 </button>
                 <button
                   onClick={() => handleFilterChange("COMMENT_ADDED")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-all ${
                     filter === "COMMENT_ADDED"
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60"
+                      ? "bg-brand-500 text-white shadow-md shadow-brand-500/20"
+                      : "text-muted hover:text-ink hover:bg-surface"
                   }`}
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
@@ -247,7 +247,7 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
               <div className="flex-1 overflow-y-auto p-5 relative">
                 {/* Vertical Timeline Line */}
                 {activities.length > 0 && (
-                  <div className="absolute left-[2.4rem] top-7 bottom-7 w-0.5 bg-slate-200 dark:bg-slate-800/80 rounded-full" />
+                  <div className="absolute left-[2.4rem] top-7 bottom-7 w-0.5 bg-line rounded-full" />
                 )}
 
                 {loading && activities.length === 0 ? (
@@ -255,12 +255,12 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                     {[1, 2, 3, 4].map((i) => (
                       <div
                         key={i}
-                        className="flex items-start gap-4 p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/30 border border-slate-200/60 dark:border-slate-800/50 animate-pulse"
+                        className="flex items-start gap-4 p-3.5 rounded-2xl bg-surface-2/50 border border-line animate-pulse"
                       >
-                        <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0" />
+                        <div className="w-9 h-9 rounded-full bg-line shrink-0" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
-                          <div className="h-3 bg-slate-200/60 dark:bg-slate-800/60 rounded w-1/3" />
+                          <div className="h-4 bg-line rounded w-3/4" />
+                          <div className="h-3 bg-line/60 rounded w-1/3" />
                         </div>
                       </div>
                     ))}
@@ -270,25 +270,25 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                     <p className="text-sm font-medium text-rose-500 mb-1">
                       {error}
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                    <p className="text-xs text-muted mb-3">
                       Máy chủ gặp lỗi khi lấy dữ liệu hoạt động.
                     </p>
                     <button
                       onClick={() => fetchActivities(0, filter, false)}
-                      className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                      className="px-3.5 py-1.5 text-xs font-medium rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition-colors"
                     >
                       Thử lại
                     </button>
                   </div>
                 ) : activities.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 flex items-center justify-center mb-3 border border-slate-200 dark:border-slate-800">
-                      <Sparkles className="w-6 h-6 text-slate-400" />
+                    <div className="w-12 h-12 rounded-2xl bg-surface-2 text-faint flex items-center justify-center mb-3 border border-line">
+                      <Sparkles className="w-6 h-6 text-faint" />
                     </div>
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    <p className="text-sm font-medium text-ink">
                       Chưa có nhật ký nào
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1 max-w-xs">
+                    <p className="text-xs text-faint mt-1 max-w-xs">
                       Các thay đổi trên bảng công việc sẽ được tự động ghi lại tại đây.
                     </p>
                   </div>
@@ -309,7 +309,7 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                         >
                           {/* Avatar & Action Badge */}
                           <div className="relative shrink-0 z-10">
-                            <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-semibold ring-2 ring-white dark:ring-slate-900 shadow-sm overflow-hidden">
+                            <div className="w-9 h-9 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-semibold ring-2 ring-surface shadow-sm overflow-hidden">
                               {item.actorAvatar ? (
                                 <img
                                   src={item.actorAvatar}
@@ -322,15 +322,15 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                                   .toUpperCase()
                               )}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
-                              <IconComponent className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-surface border border-line flex items-center justify-center">
+                              <IconComponent className="w-2.5 h-2.5 text-brand-500" />
                             </div>
                           </div>
 
                           {/* Activity Content Card */}
-                          <div className="flex-1 min-w-0 bg-white dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/70 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700/80 rounded-xl p-3.5 transition-all shadow-sm group-hover:shadow-md">
+                          <div className="flex-1 min-w-0 bg-surface hover:bg-surface-2/60 border border-line hover:border-line rounded-2xl p-3.5 transition-all shadow-sm group-hover:shadow-md">
                             <div className="flex items-center justify-between gap-2 mb-1.5">
-                              <span className="text-xs font-semibold text-slate-900 dark:text-slate-200 truncate">
+                              <span className="text-xs font-semibold text-ink truncate">
                                 {item.actorName || "Thành viên"}
                               </span>
                               <span
@@ -340,11 +340,11 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                               </span>
                             </div>
 
-                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words">
+                            <p className="text-xs text-muted leading-relaxed break-words">
                               {cleanDesc}
                             </p>
 
-                            <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500 mt-2">
+                            <div className="flex items-center gap-1 text-[11px] text-faint mt-2">
                               <Clock className="w-3 h-3" />
                               <span>{formatRelativeTime(item.createdAt)}</span>
                             </div>
@@ -361,11 +361,11 @@ export const ActivityDrawer = ({ isOpen, onClose, boardId }) => {
                     <button
                       onClick={handleLoadMore}
                       disabled={loading}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all disabled:opacity-50"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-brand-500 border border-brand-300 dark:border-brand-500/30 rounded-xl hover:bg-brand-50 transition-all disabled:opacity-50"
                     >
                       {loading ? (
                         <>
-                          <div className="w-3 h-3 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                          <div className="w-3 h-3 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
                           <span>Đang tải...</span>
                         </>
                       ) : (
