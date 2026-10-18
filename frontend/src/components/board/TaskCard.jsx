@@ -34,11 +34,11 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
       onClick={() => !isDragging && onClick?.(task)}
       className={cn(
         "group cursor-default rounded-2xl border border-line bg-surface p-4",
-        "shadow-[var(--shadow-card)] transition-all duration-200",
-        "hover:shadow-[var(--shadow-soft)]",
-        isDone && "bg-surface-2/40 border-line/50 opacity-50 shadow-none pointer-events-auto select-none",
+        "shadow-[var(--shadow-card)] transition-all duration-200 ease-[var(--ease-spring)]",
+        "hover:shadow-[var(--shadow-soft)] hover:border-brand-300/60 dark:hover:border-brand-400/40 hover:-translate-y-0.5",
+        isDone && "bg-surface-2/40 border-line/50 opacity-60 shadow-none pointer-events-auto select-none hover:translate-y-0",
         isDragging && "opacity-40",
-        overlay && "rotate-2 cursor-grabbing shadow-[var(--shadow-lift)]"
+        overlay && "rotate-2 cursor-grabbing shadow-[var(--shadow-lift)] ring-2 ring-brand-500/30"
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -102,10 +102,10 @@ const TaskCard = ({ task, onClick, onToggleComplete, overlay = false }) => {
         {due && (
           <span
             className={cn(
-              "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium tabular",
+              "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium tabular border",
               due.overdue && !isDone
-                ? "bg-priority-urgent/10 text-priority-urgent"
-                : "bg-surface-2 text-muted"
+                ? "bg-priority-urgent/10 text-priority-urgent border-priority-urgent/25 dark:bg-priority-urgent/15"
+                : "bg-surface-2 text-muted border-line/60"
             )}
           >
             <Calendar className="h-3 w-3" /> {due.label}

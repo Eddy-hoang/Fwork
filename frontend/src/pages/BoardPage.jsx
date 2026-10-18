@@ -156,7 +156,7 @@ const BoardPage = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tasks"
-            className="h-9 w-52 rounded-lg border border-line bg-surface pl-9 pr-4 text-xs shadow-[var(--shadow-card)] outline-none transition-all duration-200 focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15"
+            className="h-9 w-52 rounded-xl border border-line bg-surface pl-9 pr-4 text-xs text-ink shadow-[var(--shadow-card)] outline-none transition-all duration-200 placeholder:text-faint focus:border-brand-500/60 focus:ring-2 focus:ring-brand-500/15"
           />
         </div>
         <FilterSelect value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
@@ -173,12 +173,12 @@ const BoardPage = () => {
         {(filterPriority || filterAssignee || search) && (
           <button
             onClick={() => { setFilterPriority(""); setFilterAssignee(""); setSearch(""); }}
-            className="rounded-full px-3 py-1.5 text-xs font-medium text-faint transition-colors hover:bg-surface-2 hover:text-ink"
+            className="rounded-full px-3 py-1.5 text-xs font-medium text-faint transition-colors hover:bg-surface-2 hover:text-ink border border-line/60"
           >
             Clear
           </button>
         )}
-        <span className="ml-auto rounded-full bg-surface-2 px-3 py-1 text-xs font-medium tabular text-muted">
+        <span className="ml-auto rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold tabular text-muted shadow-2xs">
           {filteredTasks.length} tasks
         </span>
       </div>

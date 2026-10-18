@@ -50,11 +50,11 @@ const WorkspaceSelector = ({ collapsed }) => {
         onClick={() => setOpen(!open)}
         title={collapsed ? activeName : undefined}
         className={cn(
-          "group flex w-full items-center rounded-2xl border border-line/80 bg-surface-2/70 p-2.5 text-left text-xs font-medium transition-all hover:border-brand-500/40 hover:bg-surface-2 hover:shadow-card",
+          "group flex w-full items-center rounded-2xl border border-line bg-surface p-2.5 text-left text-xs font-semibold text-ink shadow-[var(--shadow-card)] transition-all duration-200 hover:border-brand-500/40 hover:bg-surface-2 hover:shadow-[var(--shadow-soft)]",
           collapsed ? "justify-center p-2" : "gap-2.5"
         )}
       >
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600 font-bold font-display text-sm">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-50/20 dark:text-brand-300 border border-brand-100/60 dark:border-brand-300/20 font-bold font-display text-sm shadow-2xs">
           {activeName[0]?.toUpperCase() || <Building2 className="h-4 w-4" />}
         </div>
 

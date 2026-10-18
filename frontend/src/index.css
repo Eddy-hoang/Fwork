@@ -9,108 +9,132 @@
    Type:    Space Grotesk (display) + Inter (body)
 ---------------------------------------------------------------------------- */
 @theme {
-  /* Fwork design system — Material Design 3 surfaces */
-  --color-bg: #f8f9fa; /* MD3 light background */
-  --color-surface: #ffffff; /* MD3 surface card */
-  --color-surface-2: #eceef4; /* MD3 surface variant */
-  --color-elevated: #e1e3e9; /* MD3 elevated surface */
-  --color-line: #cac4d0; /* MD3 border line */
+  /* Fwork design system — Material Design 3 surfaces with Rich Chromatic Depth */
+  --color-bg: #f7f6fb; /* Soft lavender-tinted foundational surface */
+  --color-surface: #ffffff; /* Crisp white floating surface */
+  --color-surface-2: #f1eff8; /* Tinted secondary surface (2-4% violet undertone) */
+  --color-elevated: #e8e5f2; /* Elevated surface / hover card */
+  --color-line: #e2def0; /* Delicate chromatic border */
 
   /* Neutral text hierarchy */
-  --color-ink: #1c1b1f; /* MD3 primary on-surface */
-  --color-muted: #49454f; /* MD3 secondary on-surface */
-  --color-faint: #79747e; /* MD3 placeholder / helper */
+  --color-ink: #1a1726; /* Deep obsidian-violet primary text */
+  --color-muted: #565169; /* Balanced secondary text (WCAG compliant) */
+  --color-faint: #858099; /* Muted metadata / placeholder */
 
-  /* Brand Accent — MD3 default purple primary */
-  --color-brand-50: #f3e8ff;
-  --color-brand-100: #e9d5ff;
-  --color-brand-300: #c084fc;
-  --color-brand-400: #a855f7;
+  /* Brand Accent — MD3 primary purple */
+  --color-brand-50: #f4efff;
+  --color-brand-100: #eaddff;
+  --color-brand-200: #d0bcff;
+  --color-brand-300: #b69df8;
+  --color-brand-400: #9373ee;
   --color-brand-500: #6750a4; /* MD3 purple primary */
   --color-brand-600: #5b4396;
   --color-brand-700: #4f378b;
+  --color-brand-800: #38246b;
 
-  /* Priority & status colors */
-  --color-priority-low: #0ea5e9;
-  --color-priority-medium: #d97706;
-  --color-priority-high: #ea580c;
-  --color-priority-urgent: #e11d48;
+  /* Priority & Semantic Status colors */
+  --color-priority-low: #0284c7; /* Ocean Blue */
+  --color-priority-medium: #d97706; /* Warm Amber */
+  --color-priority-high: #ea580c; /* Tangerine Orange */
+  --color-priority-urgent: #e11d48; /* Coral Rose */
+  --color-status-success: #059669; /* Mint Emerald */
 
-  /* Radius hierarchy - Material Design 3 large rounding */
+  /* Radius hierarchy - Material Design 3 generous curves */
   --radius-xs: 8px;
   --radius-sm: 12px;
-  --radius-md: 12px;
-  --radius-lg: 24px;      /* MD3 large card rounding */
-  --radius-xl: 24px;      /* MD3 large card rounding */
-  --radius-2xl: 24px;
-  --radius-3xl: 24px;
-  --radius-pill: 999px;   /* pill buttons */
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;      /* MD3 card & panel rounding */
+  --radius-2xl: 28px;
+  --radius-3xl: 32px;
+  --radius-pill: 9999px;  /* Pill buttons and badges */
 
   --font-sans:
     "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display:
     "Plus Jakarta Sans", "Inter", sans-serif;
 
-  /* signature easing — used for nearly every transition */
+  /* Signature easing */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* MD3 elevation shadows */
+  /* Rich Chromatic Depth Elevation Shadows (Violet-tinted multi-layer) */
   --shadow-card:
-    0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+    0 1px 3px rgba(103, 80, 164, 0.05),
+    0 2px 6px -1px rgba(26, 23, 38, 0.04);
   --shadow-soft:
-    0 3px 6px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+    0 4px 20px -2px rgba(103, 80, 164, 0.08),
+    0 2px 6px -1px rgba(26, 23, 38, 0.04);
   --shadow-lift:
-    0 8px 16px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
-  --shadow-brand: 0 8px 16px rgba(103, 80, 164, 0.16);
+    0 14px 34px -4px rgba(103, 80, 164, 0.15),
+    0 4px 12px -2px rgba(26, 23, 38, 0.06);
+  --shadow-brand:
+    0 8px 24px -2px rgba(103, 80, 164, 0.28);
 }
 
 .dark {
-  --color-bg: #121212; /* Clean traditional dark background */
-  --color-surface: #1e1e1e; /* Standard neutral dark surface */
-  --color-surface-2: #2a2a2a; /* Secondary dark background */
-  --color-elevated: #333333; /* Pressed/elevated dark elements */
-  --color-line: #49454f; /* MD3 dark borders */
+  /* Rich Layered Obsidian-Violet surfaces */
+  --color-bg: #0f0e15; /* Deep obsidian-violet background */
+  --color-surface: #181622; /* Primary dark surface */
+  --color-surface-2: #211e2f; /* Tinted secondary dark surface */
+  --color-elevated: #2b273d; /* Elevated dark card surface */
+  --color-line: #322d45; /* Visible chromatic border */
 
-  --color-ink: #e6e1e5; /* MD3 dark mode text */
-  --color-muted: #cac4d0;
-  --color-faint: #938f99;
+  --color-ink: #f1eff8; /* Crisp off-white on-surface */
+  --color-muted: #aba5be; /* Legible secondary text */
+  --color-faint: #7a748e; /* Muted helper / timestamp */
 
-  --color-brand-50: #2a1b4e;
-  --color-brand-100: #3b2c68;
-  --color-brand-300: #6c56b7;
-  --color-brand-400: #907bc9;
+  --color-brand-50: #261b42;
+  --color-brand-100: #392864;
+  --color-brand-200: #4f378b;
+  --color-brand-300: #7d5dbd;
+  --color-brand-400: #a78bfa;
   --color-brand-500: #d0bcff; /* MD3 primary dark */
-  --color-brand-600: #a78bfa;
-  --color-brand-700: #c4b5fd;
+  --color-brand-600: #bca1f7;
+  --color-brand-700: #eaddff;
+  --color-brand-800: #f4efff;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-soft: 0 3px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-lift: 0 8px 16px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.4);
-  --shadow-brand: 0 8px 16px rgba(208, 188, 255, 0.16);
+  /* Status colors calibrated for dark background readability */
+  --color-priority-low: #38bdf8;
+  --color-priority-medium: #fbbf24;
+  --color-priority-high: #fb923c;
+  --color-priority-urgent: #f43f5e;
+  --color-status-success: #34d399;
+
+  --shadow-card:
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-soft:
+    0 4px 20px -2px rgba(0, 0, 0, 0.5),
+    0 2px 8px -1px rgba(79, 55, 139, 0.15);
+  --shadow-lift:
+    0 16px 36px -4px rgba(0, 0, 0, 0.65),
+    0 4px 14px -2px rgba(125, 93, 189, 0.2);
+  --shadow-brand:
+    0 8px 24px -2px rgba(208, 188, 255, 0.22);
 }
 
 .force-light {
-  --color-bg: #f8f9fa;
+  --color-bg: #f7f6fb;
   --color-surface: #ffffff;
-  --color-surface-2: #eceef4;
-  --color-elevated: #e1e3e9;
-  --color-line: #cac4d0;
+  --color-surface-2: #f1eff8;
+  --color-elevated: #e8e5f2;
+  --color-line: #e2def0;
 
-  --color-ink: #1c1b1f;
-  --color-muted: #49454f;
-  --color-faint: #79747e;
+  --color-ink: #1a1726;
+  --color-muted: #565169;
+  --color-faint: #858099;
 
-  --color-brand-50: #f3e8ff;
-  --color-brand-100: #e9d5ff;
-  --color-brand-300: #c084fc;
-  --color-brand-400: #a855f7;
+  --color-brand-50: #f4efff;
+  --color-brand-100: #eaddff;
+  --color-brand-300: #b69df8;
+  --color-brand-400: #9373ee;
   --color-brand-500: #6750a4;
   --color-brand-600: #5b4396;
   --color-brand-700: #4f378b;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
-  --shadow-soft: 0 3px 6px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-lift: 0 8px 16px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 3px rgba(103, 80, 164, 0.05), 0 2px 6px -1px rgba(26, 23, 38, 0.04);
+  --shadow-soft: 0 4px 20px -2px rgba(103, 80, 164, 0.08), 0 2px 6px -1px rgba(26, 23, 38, 0.04);
+  --shadow-lift: 0 14px 34px -4px rgba(103, 80, 164, 0.15), 0 4px 12px -2px rgba(26, 23, 38, 0.06);
 }
 
 /* ----------------------------------------------------------------------------
@@ -184,9 +208,10 @@ h3,
 ---------------------------------------------------------------------------- */
 @layer components {
   .glass {
-    background: color-mix(in oklab, var(--color-bg) 72%, transparent);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    background: color-mix(in oklab, var(--color-surface) 75%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-color: var(--color-line);
   }
 
   .card {
@@ -194,11 +219,31 @@ h3,
     border: 1px solid var(--color-line);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-card);
-    transition: border-color 0.25s var(--ease-spring), box-shadow 0.25s var(--ease-spring);
+    transition:
+      border-color 0.25s var(--ease-spring),
+      box-shadow 0.25s var(--ease-spring),
+      transform 0.25s var(--ease-spring);
   }
   .card:hover {
-    border-color: color-mix(in oklab, var(--color-brand-500) 25%, var(--color-line));
+    border-color: color-mix(in oklab, var(--color-brand-500) 30%, var(--color-line));
     box-shadow: var(--shadow-soft);
+  }
+
+  /* Rich chromatic ambient glow utility */
+  .chromatic-glow {
+    position: relative;
+  }
+  .chromatic-glow::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(103, 80, 164, 0.2), transparent 60%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 
   /* shared field styles — radius is applied per-field in the component
@@ -219,8 +264,8 @@ h3,
     color: var(--color-faint);
   }
   .input-base:focus {
-    border-color: color-mix(in oklab, var(--color-brand-500) 55%, transparent);
-    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.16);
+    border-color: color-mix(in oklab, var(--color-brand-500) 65%, transparent);
+    box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.18);
   }
 
   .focus-ring:focus-visible {
@@ -230,13 +275,13 @@ h3,
       0 0 0 4px var(--color-brand-500);
   }
 
-  /* the brand gradient, reusable — purple → indigo → blue */
+  /* the brand gradient, reusable — purple → indigo → deep violet */
   .brand-gradient {
     background-image: linear-gradient(
       135deg,
-      #9333ea 0%,
-      #6366f1 50%,
-      #3b82f6 100%
+      #7c3aed 0%,
+      #6750a4 45%,
+      #4f378b 100%
     );
   }
 }

@@ -28,7 +28,7 @@ const Modal = ({ open, onClose, title, description, children, footer, size = "md
             aria-modal="true"
             aria-labelledby={title ? "modal-title" : undefined}
             className={cn(
-              "card relative z-10 mt-8 w-full rounded-3xl p-6 shadow-[var(--shadow-lift)]",
+              "card relative z-10 mt-8 w-full rounded-3xl p-6.5 shadow-[var(--shadow-lift)] border border-line bg-surface text-ink",
               widths[size]
             )}
             initial={{ opacity: 0, scale: 0.97, y: 10 }}
@@ -39,12 +39,12 @@ const Modal = ({ open, onClose, title, description, children, footer, size = "md
             {(title || onClose) && (
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  {title && <h2 id="modal-title" className="font-display text-lg font-semibold tracking-tight">{title}</h2>}
+                  {title && <h2 id="modal-title" className="font-display text-lg font-bold tracking-tight text-ink">{title}</h2>}
                   {description && <p className="mt-1 text-sm text-muted">{description}</p>}
                 </div>
                 <button
                   onClick={onClose}
-                  className="-mr-1 -mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-ink"
+                  className="-mr-1 -mt-1 grid h-8.5 w-8.5 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-ink border border-transparent hover:border-line"
                 >
                   <X className="h-4.5 w-4.5" />
                 </button>

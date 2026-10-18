@@ -27,18 +27,18 @@ const NavItem = ({ to, icon: Icon, label, collapsed, badge }) => (
     title={collapsed ? label : undefined}
     className={({ isActive }) =>
       cn(
-        "group relative flex h-11 items-center rounded-2xl text-sm font-medium transition-colors duration-200",
+        "group relative flex h-11 items-center rounded-2xl text-sm font-medium transition-all duration-200",
         collapsed ? "mx-auto w-11 justify-center" : "gap-3 px-3",
         isActive
-          ? "bg-brand-50 font-semibold text-brand-700"
-          : "text-muted hover:bg-surface-2 hover:text-ink"
+          ? "bg-brand-50/90 dark:bg-brand-50/15 font-semibold text-brand-700 dark:text-brand-300 border border-brand-200/50 dark:border-brand-300/20 shadow-xs"
+          : "text-muted hover:bg-surface-2 hover:text-ink hover:translate-x-0.5"
       )
     }
   >
     {({ isActive }) => (
       <>
         {isActive && !collapsed && (
-          <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-brand-500" />
+          <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-brand-500 shadow-[0_0_8px_rgba(103,80,164,0.6)]" />
         )}
         <Icon className="h-5 w-5 shrink-0" />
         {!collapsed && <span className="flex-1 truncate">{label}</span>}
@@ -146,21 +146,25 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
                   title={b.title}
                   className={({ isActive }) =>
                     cn(
-                      "flex h-10 items-center rounded-2xl text-sm transition-colors duration-200",
-                      collapsed ? "mx-auto w-10 justify-center" : "gap-3 px-2",
-                      isActive ? "bg-brand-50 font-medium text-brand-700" : "text-muted hover:bg-surface-2 hover:text-ink"
+                      "flex h-10 items-center rounded-2xl text-sm transition-all duration-200",
+                      collapsed ? "mx-auto w-10 justify-center" : "gap-3 px-2.5",
+                      isActive
+                        ? "bg-brand-50/90 dark:bg-brand-50/15 font-semibold text-brand-700 dark:text-brand-300 border border-brand-200/50 dark:border-brand-300/20 shadow-xs"
+                        : "text-muted hover:bg-surface-2 hover:text-ink hover:translate-x-0.5"
                     )
                   }
                 >
                   <span
-                    className="grid h-7 w-7 shrink-0 place-items-center rounded-lg font-display text-[12px] font-bold"
-                    style={{ backgroundColor: `color-mix(in oklab, ${color} 12%, transparent)`, color }}
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-xl font-display text-[12px] font-bold shadow-2xs"
+                    style={{ backgroundColor: `color-mix(in oklab, ${color} 14%, transparent)`, color }}
                   >
                     {b.title?.[0]?.toUpperCase() || "B"}
                   </span>
                   {!collapsed && <span className="flex-1 truncate">{b.title}</span>}
                   {!collapsed && (
-                    <span className="shrink-0 pr-1 text-[10px] font-medium tabular text-faint">{b.task_count}</span>
+                    <span className="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold tabular text-faint border border-line/60">
+                      {b.task_count}
+                    </span>
                   )}
                 </NavLink>
               );

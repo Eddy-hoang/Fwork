@@ -6,10 +6,14 @@ export const PriorityBadge = ({ priority, className }) => {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-tight",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-tight border",
         className
       )}
-      style={{ color: meta.color, backgroundColor: `${meta.color}18` }}
+      style={{
+        color: meta.color,
+        backgroundColor: `color-mix(in oklab, ${meta.color} 10%, transparent)`,
+        borderColor: `color-mix(in oklab, ${meta.color} 22%, transparent)`,
+      }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: meta.color }} />
       {meta.label}
@@ -23,10 +27,14 @@ export const PriorityTag = ({ priority, className }) => {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] border shadow-xs",
         className
       )}
-      style={{ color: meta.color, backgroundColor: `${meta.color}14` }}
+      style={{
+        color: meta.color,
+        backgroundColor: `color-mix(in oklab, ${meta.color} 10%, transparent)`,
+        borderColor: `color-mix(in oklab, ${meta.color} 20%, transparent)`,
+      }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: meta.color }} />
       {meta.label}
@@ -37,7 +45,7 @@ export const PriorityTag = ({ priority, className }) => {
 export const Badge = ({ children, className }) => (
   <span
     className={cn(
-      "inline-flex items-center gap-1 rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium tracking-tight text-muted",
+      "inline-flex items-center gap-1 rounded-full border border-line bg-surface-2/80 px-2.5 py-0.5 text-[11px] font-medium tracking-tight text-muted",
       className
     )}
   >

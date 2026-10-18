@@ -69,7 +69,21 @@ const LayoutInner = () => {
 
   return (
     <LayoutContext.Provider value={{ openCreateBoard, openCommand }}>
-      <div className="h-screen overflow-hidden flex flex-col md:flex-row">
+      <div className="relative h-screen overflow-hidden flex flex-col md:flex-row bg-bg text-ink">
+        {/* Ambient Chromatic Illumination (Low-opacity radial glows) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-brand-500/10 blur-[120px] dark:bg-brand-500/12"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed top-1/3 -right-40 h-[450px] w-[450px] rounded-full bg-blue-500/7 blur-[140px] dark:bg-blue-500/10"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed -bottom-40 left-1/3 h-[400px] w-[400px] rounded-full bg-brand-400/8 blur-[130px] dark:bg-brand-400/10"
+        />
+
         <Sidebar
           collapsed={collapsed}
           onToggle={toggleSidebar}
@@ -78,7 +92,7 @@ const LayoutInner = () => {
         />
         <main
           className={cn(
-            "flex-1 flex flex-col min-w-0 overflow-hidden transition-[padding] duration-300 ease-[var(--ease-spring)]",
+            "flex-1 flex flex-col min-w-0 overflow-hidden transition-[padding] duration-300 ease-[var(--ease-spring)] relative z-10",
             collapsed ? "main-content-pad-collapsed" : "main-content-pad"
           )}
         >

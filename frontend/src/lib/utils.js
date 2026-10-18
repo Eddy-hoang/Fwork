@@ -16,14 +16,14 @@ export const priorityMeta = (value) => {
   return PRIORITIES.find((p) => p.value === val) || PRIORITIES[1];
 };
 
-// Pastel accents assigned to columns by index (Linear/Notion-style boards).
+// Semantic chromatic accents assigned to columns (To Do: Violet, In Progress: Ocean Blue, Review: Warm Amber, Done: Mint Emerald)
 const COLUMN_ACCENTS = [
-  { dot: "#f43f5e", soft: "rgba(244, 63, 94, 0.06)", ring: "rgba(244, 63, 94, 0.22)" }, // rose
-  { dot: "#f59e0b", soft: "rgba(245, 158, 11, 0.07)", ring: "rgba(245, 158, 11, 0.24)" }, // amber
-  { dot: "#0ea5e9", soft: "rgba(14, 165, 233, 0.06)", ring: "rgba(14, 165, 233, 0.22)" }, // sky
-  { dot: "#8b5cf6", soft: "rgba(139, 92, 246, 0.06)", ring: "rgba(139, 92, 246, 0.22)" }, // violet
-  { dot: "#10b981", soft: "rgba(16, 185, 129, 0.06)", ring: "rgba(16, 185, 129, 0.22)" }, // emerald
-  { dot: "#ec4899", soft: "rgba(236, 72, 153, 0.06)", ring: "rgba(236, 72, 153, 0.22)" }, // pink
+  { dot: "#8b5cf6", soft: "color-mix(in oklab, #8b5cf6 6%, var(--color-surface))", ring: "rgba(139, 92, 246, 0.35)", border: "rgba(139, 92, 246, 0.18)" }, // violet (To Do)
+  { dot: "#0284c7", soft: "color-mix(in oklab, #0284c7 6%, var(--color-surface))", ring: "rgba(2, 132, 199, 0.35)", border: "rgba(2, 132, 199, 0.18)" }, // ocean blue (In Progress)
+  { dot: "#d97706", soft: "color-mix(in oklab, #d97706 6%, var(--color-surface))", ring: "rgba(217, 119, 6, 0.35)", border: "rgba(217, 119, 6, 0.18)" }, // warm amber (Review)
+  { dot: "#059669", soft: "color-mix(in oklab, #059669 6%, var(--color-surface))", ring: "rgba(5, 150, 105, 0.35)", border: "rgba(5, 150, 105, 0.18)" }, // mint emerald (Done)
+  { dot: "#e11d48", soft: "color-mix(in oklab, #e11d48 6%, var(--color-surface))", ring: "rgba(225, 29, 72, 0.35)", border: "rgba(225, 29, 72, 0.18)" }, // coral rose (Urgent)
+  { dot: "#6750a4", soft: "color-mix(in oklab, #6750a4 6%, var(--color-surface))", ring: "rgba(103, 80, 164, 0.35)", border: "rgba(103, 80, 164, 0.18)" }, // brand purple
 ];
 
 export const columnAccent = (index = 0) =>

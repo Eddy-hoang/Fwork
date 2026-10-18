@@ -37,14 +37,18 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
   return (
     <div
       className={cn(
-        "flex h-full w-[330px] shrink-0 flex-col rounded-3xl p-2.5 transition-colors",
+        "flex h-full w-[330px] shrink-0 flex-col rounded-3xl p-3 transition-all duration-200 border",
         isOver && "ring-2 ring-inset"
       )}
-      style={{ backgroundColor: accent.soft, ...(isOver ? { "--tw-ring-color": accent.ring } : {}) }}
+      style={{
+        backgroundColor: accent.soft,
+        borderColor: accent.border || "var(--color-line)",
+        ...(isOver ? { "--tw-ring-color": accent.ring } : {})
+      }}
     >
       {/* Header */}
-      <div className="mb-2 flex items-center gap-2 px-1.5 pt-1">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: accent.dot }} />
+      <div className="mb-2.5 flex items-center gap-2 px-1 pt-0.5">
+        <span className="h-2.5 w-2.5 rounded-full shadow-2xs" style={{ backgroundColor: accent.dot }} />
         {editing ? (
           <input
             autoFocus
@@ -52,14 +56,14 @@ const Column = ({ column, tasks, index = 0, onTaskClick, onToggleComplete, onAdd
             onChange={(e) => setTitle(e.target.value)}
             onBlur={commitRename}
             onKeyDown={(e) => e.key === "Enter" && commitRename()}
-            className="w-full rounded bg-surface px-2 py-0.5 text-sm font-semibold outline-none"
+            className="w-full rounded-lg bg-surface px-2 py-0.5 text-sm font-semibold outline-none border border-brand-500/50"
           />
         ) : (
-          <h3 className="cursor-text font-display text-[15px] font-bold tracking-tight text-ink" onDoubleClick={() => setEditing(true)}>
+          <h3 className="cursor-text font-display text-[15px] font-bold tracking-tight text-ink truncate" onDoubleClick={() => setEditing(true)}>
             {column.title}
           </h3>
         )}
-        <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-semibold tabular text-muted shadow-[var(--shadow-card)]">
+        <span className="rounded-full border border-line bg-surface/90 px-2 py-0.5 text-xs font-semibold tabular text-muted shadow-2xs">
           {tasks.length}
         </span>
 

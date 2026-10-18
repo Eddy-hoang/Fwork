@@ -192,18 +192,19 @@ const Dashboard = () => {
                 >
                   <Link
                     to={`/board/${b.id}`}
-                    className="group relative block h-full overflow-hidden rounded-3xl border border-line bg-surface p-5 shadow-[var(--shadow-card)] transition-shadow duration-300 hover:shadow-[var(--shadow-soft)]"
+                    className="group relative block h-full overflow-hidden rounded-3xl border border-line bg-surface p-5.5 shadow-[var(--shadow-card)] transition-all duration-300 ease-[var(--ease-spring)] hover:border-brand-500/35 hover:shadow-[var(--shadow-soft)] hover:-translate-y-0.5"
                   >
-                    {/* color accent strip */}
+                    {/* color accent strip with chromatic blur */}
                     <span
-                      className="absolute inset-x-0 top-0 h-1"
+                      className="absolute inset-x-0 top-0 h-1.5"
                       style={{ background: b.color || "var(--color-brand-600)" }}
                     />
                     <div className="mb-3.5 flex items-start justify-between">
                       <div
-                        className="flex h-11 w-11 items-center justify-center rounded-md"
+                        className="flex h-11 w-11 items-center justify-center rounded-2xl border shadow-2xs transition-transform duration-200 group-hover:scale-105"
                         style={{
-                          backgroundColor: b.color ? `${b.color}1f` : "color-mix(in oklab, var(--color-brand-600) 12%, transparent)",
+                          backgroundColor: b.color ? `${b.color}18` : "color-mix(in oklab, var(--color-brand-600) 14%, transparent)",
+                          borderColor: b.color ? `${b.color}30` : "color-mix(in oklab, var(--color-brand-600) 25%, transparent)",
                           color: b.color || "var(--color-brand-600)",
                         }}
                       >
@@ -211,7 +212,7 @@ const Dashboard = () => {
                       </div>
                       <span className="flex items-center gap-1.5 text-faint">
                         {!b.is_owner && (
-                          <span className="rounded-full bg-surface-2 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                          <span className="rounded-full border border-line bg-surface-2 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
                             Shared
                           </span>
                         )}
@@ -222,7 +223,7 @@ const Dashboard = () => {
                             e.stopPropagation();
                             setDeleteTarget(b);
                           }}
-                          className="rounded-lg p-1 text-faint hover:bg-priority-urgent/10 hover:text-priority-urgent transition-colors"
+                          className="rounded-xl p-1.5 text-faint hover:bg-priority-urgent/10 hover:text-priority-urgent transition-colors"
                           title="Delete board"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -230,21 +231,21 @@ const Dashboard = () => {
                         <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-500" />
                       </span>
                     </div>
-                    <h4 className="font-display text-base font-semibold tracking-tight transition-colors group-hover:text-brand-600">
+                    <h4 className="font-display text-base font-semibold tracking-tight transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">
                       {b.title}
                     </h4>
                     <p className="mt-1.5 line-clamp-2 min-h-10 text-sm leading-relaxed text-muted">
                       {b.description || "No description"}
                     </p>
-                    <div className="mt-4 flex items-center gap-4 border-t pt-3.5 text-xs text-faint">
-                      <span className="flex items-center gap-1.5 tabular">
-                        <CheckSquare className="h-3.5 w-3.5" /> {b.task_count}{" "}
+                    <div className="mt-4 flex items-center gap-4 border-t border-line/70 pt-3.5 text-xs text-faint">
+                      <span className="flex items-center gap-1.5 tabular font-medium text-muted">
+                        <CheckSquare className="h-3.5 w-3.5 text-brand-500" /> {b.task_count}{" "}
                         tasks
                       </span>
-                      <span className="flex items-center gap-1.5 tabular">
+                      <span className="flex items-center gap-1.5 tabular text-faint">
                         <Users className="h-3.5 w-3.5" /> {b.member_count}
                       </span>
-                      <span className="ml-auto">
+                      <span className="ml-auto text-faint">
                         {relativeTime(b.updated_at)}
                       </span>
                     </div>
@@ -625,15 +626,15 @@ const KpiCard = ({
 }) => (
   <div
     className={cn(
-      "group relative overflow-hidden rounded-3xl p-5 transition-shadow duration-300",
+      "group relative overflow-hidden rounded-3xl p-5.5 transition-all duration-300 ease-[var(--ease-spring)]",
       featured
-        ? "brand-gradient text-white shadow-[var(--shadow-brand)]"
-        : "border border-line bg-surface text-ink hover:shadow-[var(--shadow-soft)]",
+        ? "brand-gradient text-white shadow-[var(--shadow-brand)] hover:shadow-[0_16px_36px_rgba(103,80,164,0.35)] hover:-translate-y-0.5"
+        : "border border-line bg-surface text-ink shadow-[var(--shadow-card)] hover:border-brand-500/35 hover:shadow-[var(--shadow-soft)] hover:-translate-y-0.5",
     )}
   >
     {featured && (
       <>
-        <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/15 blur-xl" />
+        <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/20 blur-xl" />
         <div className="absolute -bottom-12 -left-6 h-24 w-24 rounded-full bg-white/10 blur-xl" />
       </>
     )}
@@ -641,7 +642,7 @@ const KpiCard = ({
       <div className="mb-7 flex items-start justify-between gap-2">
         <span
           className={cn(
-            "text-[15px] font-medium",
+            "text-[15px] font-medium tracking-tight",
             featured ? "text-white/90" : "text-ink",
           )}
         >
@@ -649,25 +650,25 @@ const KpiCard = ({
         </span>
         <span
           className={cn(
-            "grid h-9 w-9 shrink-0 place-items-center rounded-md transition-colors duration-200",
+            "grid h-10 w-10 shrink-0 place-items-center rounded-2xl transition-all duration-200 border",
             featured
-              ? "bg-white/20 text-white"
-              : "bg-brand-50 text-brand-600 group-hover:bg-brand-100",
+              ? "bg-white/20 text-white border-white/25"
+              : "bg-brand-50 text-brand-600 dark:text-brand-300 border-brand-100/60 dark:border-brand-300/20 group-hover:bg-brand-100 group-hover:scale-105",
           )}
         >
-          <Icon className="h-[18px] w-[18px]" />
+          <Icon className="h-5 w-5" />
         </span>
       </div>
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-display text-[40px] font-semibold leading-none tracking-tight tabular">
+          <p className="font-display text-[42px] font-bold leading-none tracking-tight tabular">
             {value}
           </p>
           {hint && (
             <p
               className={cn(
-                "mt-3 text-xs",
-                featured ? "text-white/75" : "text-muted",
+                "mt-3 text-xs font-medium",
+                featured ? "text-white/80" : "text-muted",
               )}
             >
               {hint}
