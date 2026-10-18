@@ -61,7 +61,7 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
   return (
     <aside
       className={cn(
-        "fixed inset-y-3 left-3 z-40 hidden flex-col overflow-hidden rounded-3xl border border-line bg-surface/90 shadow-soft backdrop-blur-xl transition-[width] duration-300 ease-[var(--ease-spring)] md:flex",
+        "fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border-r border-line bg-surface/90 shadow-soft backdrop-blur-xl transition-[width] duration-300 ease-[var(--ease-spring)] md:flex",
         collapsed ? "w-[72px]" : "w-[252px]"
       )}
     >
@@ -203,9 +203,8 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
       </div>
 
       {/* User (pinned at bottom) */}
-      <div className="shrink-0">
-        <div className="mx-3 mt-1 border-t" />
-        <div className={cn("flex h-16 items-center pb-2", collapsed ? "justify-center px-2" : "gap-3 px-3.5")}>
+      <div className="shrink-0 border-t border-line">
+        <div className={cn("flex h-16 items-center", collapsed ? "justify-center px-2" : "gap-3 px-3.5")}>
           <Avatar name={user?.name} id={user?.id} src={user?.avatar || user?.avatar_url} size="sm" className="shrink-0" />
           {!collapsed && (
             <div className="min-w-0 flex-1">

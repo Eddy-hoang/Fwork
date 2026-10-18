@@ -427,10 +427,10 @@ h3,
   }
   @media (min-width: 768px) {
     .main-content-pad {
-      padding-left: 280px;
+      padding-left: 252px;
     }
     .main-content-pad-collapsed {
-      padding-left: 92px;
+      padding-left: 72px;
     }
   }
 }
