@@ -186,7 +186,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (googleClientId == null || googleClientId.isBlank()) {
             log.error("Google Sign-In attempted but server is missing GOOGLE_CLIENT_ID configuration");
-            throw new IllegalStateException("Google Sign-In is not configured on the server");
+            throw new org.springframework.security.access.AccessDeniedException("Google Sign-In is not configured on the server");
         }
 
         try {

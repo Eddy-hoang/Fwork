@@ -44,10 +44,10 @@ public class SecurityHardeningIntegrationTest {
                 .build();
 
         mockMvc.perform(options("/api/auth/login")
-                        .header("Origin", "https://fwork-preview.vercel.app")
+                        .header("Origin", "https://fwork-web.vercel.app")
                         .header("Access-Control-Request-Method", "POST"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Access-Control-Allow-Origin", "https://fwork-preview.vercel.app"))
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://fwork-web.vercel.app"))
                 .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
     }
 
