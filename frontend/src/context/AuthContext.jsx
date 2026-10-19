@@ -25,8 +25,8 @@ export const AuthProvider = ({ children }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleAuth = useCallback(({ user, token }) => {
-    setToken(token);
+  const handleAuth = useCallback(({ user, token, refreshToken }) => {
+    setToken(token, refreshToken);
     setUser(user);
     connectSocket();
     return user;
@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }) => {
   );
 
   const logout = useCallback(() => {
+    authApi.logout();
     clearToken();
     disconnectSocket();
     setUser(null);

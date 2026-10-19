@@ -1,9 +1,17 @@
 import axios from "axios";
 
 const TOKEN_KEY = "kanban_token";
+const REFRESH_TOKEN_KEY = "kanban_refresh_token";
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const setToken = (t) => localStorage.setItem(TOKEN_KEY, t);
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
+export const setToken = (t, rt) => {
+  if (t) localStorage.setItem(TOKEN_KEY, t);
+  if (rt) localStorage.setItem(REFRESH_TOKEN_KEY, rt);
+};
+export const clearToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -17,6 +25,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let refreshPromise = null;
+
 // Unwrap backend ApiResponse<T> format: { success, status, message, data }
 api.interceptors.response.use(
   (res) => {
@@ -29,14 +39,59 @@ api.interceptors.response.use(
     }
     return res.data;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+    const isAuthUrl =
+      originalRequest?.url?.includes("/auth/login") ||
+      originalRequest?.url?.includes("/auth/register") ||
+      originalRequest?.url?.includes("/auth/refresh");
+
+    // Silently refresh token on 401 if refresh token is available
+    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthUrl) {
+      const refreshToken = getRefreshToken();
+      if (refreshToken) {
+        originalRequest._retry = true;
+        if (!refreshPromise) {
+          refreshPromise = axios
+            .post(`${api.defaults.baseURL}/auth/refresh`, { refreshToken })
+            .then((res) => {
+              const data = res.data?.data || res.data;
+              const newToken = data?.accessToken;
+              if (newToken) {
+                setToken(newToken);
+                return newToken;
+              }
+              throw new Error("No access token returned");
+            })
+            .catch((err) => {
+              clearToken();
+              if (!window.location.pathname.startsWith("/login")) {
+                window.location.assign("/login");
+              }
+              return Promise.reject(err);
+            })
+            .finally(() => {
+              refreshPromise = null;
+            });
+        }
+
+        try {
+          const newToken = await refreshPromise;
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        } catch {
+          // Handled inside refreshPromise
+        }
+      }
+    }
+
     const message =
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.message ||
       "Something went wrong";
 
-    if (error.response?.status === 401 && getToken()) {
+    if (error.response?.status === 401 && getToken() && (originalRequest?._retry || isAuthUrl || !getRefreshToken())) {
       clearToken();
       if (!window.location.pathname.startsWith("/login")) {
         window.location.assign("/login");
@@ -52,22 +107,29 @@ export const authApi = {
   register: (data) =>
     api.post("/auth/register", data).then((res) => {
       const token = res?.accessToken || res?.token;
-      if (token) setToken(token);
-      return { token, user: res?.user || res };
+      if (token) setToken(token, res?.refreshToken);
+      return { token, refreshToken: res?.refreshToken, user: res?.user || res };
     }),
   login: (data) =>
     api.post("/auth/login", data).then((res) => {
       const token = res?.accessToken || res?.token;
-      if (token) setToken(token);
-      return { token, user: res?.user || res };
+      if (token) setToken(token, res?.refreshToken);
+      return { token, refreshToken: res?.refreshToken, user: res?.user || res };
     }),
   google: (idToken) =>
     api.post("/auth/google", { token: idToken }).then((res) => {
       const token = res?.accessToken || res?.token;
-      if (token) setToken(token);
-      return { token, user: res?.user || res };
+      if (token) setToken(token, res?.refreshToken);
+      return { token, refreshToken: res?.refreshToken, user: res?.user || res };
     }),
   me: () => api.get("/auth/me"),
+  logout: () => {
+    const rt = getRefreshToken();
+    if (rt) {
+      return api.post("/auth/logout", { refreshToken: rt }).catch(() => {});
+    }
+    return Promise.resolve();
+  },
 };
 
 export const userApi = {

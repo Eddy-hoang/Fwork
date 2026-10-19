@@ -203,7 +203,7 @@ const translations = {
 
     // Dashboard
     "Workspace Overview": "Tổng quan không gian",
-    "Welcome back": "Chào mừng trở lại, {name} 👋",
+    "Welcome back": "Chào mừng trở lại {name}!",
     "Total boards": "Tổng số bảng",
     "Total tasks": "Tổng số thẻ",
     "Owned by you": "Bảng của bạn",
