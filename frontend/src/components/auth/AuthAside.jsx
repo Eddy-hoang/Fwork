@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Sparkles } from "lucide-react";
+import { Workflow, Sparkles } from "lucide-react";
 import KanbanDemo from "../landing/KanbanDemo";
 
 const AuthAside = ({
@@ -40,8 +40,8 @@ const AuthAside = ({
 
       {/* brand mark */}
       <Link to="/" className="absolute left-8 top-8 z-10 flex items-center gap-2.5 text-white">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-inset ring-white/20">
-          <Zap className="h-4.5 w-4.5 fill-white text-white" />
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-inset ring-white/20 shadow-sm backdrop-blur-sm">
+          <Workflow className="h-4.5 w-4.5 text-white stroke-[2.3]" />
         </span>
         <span className="font-display text-lg font-bold tracking-tight">Fwork</span>
       </Link>

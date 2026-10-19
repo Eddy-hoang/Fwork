@@ -9,6 +9,7 @@ import { userApi } from "../lib/api";
 import Topbar from "../components/layout/Topbar";
 import Button from "../components/ui/Button";
 import Avatar from "../components/ui/Avatar";
+import Logo from "../components/common/Logo";
 import { cn } from "../lib/utils";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -265,9 +266,7 @@ const Settings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Card title={t("About")} className="flex flex-col justify-between">
               <div className="flex items-center gap-3">
-                <div className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-[var(--shadow-brand)]">
-                  <Zap className="h-5 w-5 fill-white text-white" />
-                </div>
+                <Logo size="lg" showText={false} />
                 <div>
                   <p className="text-sm font-semibold text-ink">Fwork</p>
                   <p className="text-xs text-muted">{t("AboutDesc")}</p>

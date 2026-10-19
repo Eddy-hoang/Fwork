@@ -7,6 +7,7 @@ import { useBoards } from "../../context/BoardsContext";
 import { useAuth } from "../../context/AuthContext";
 import Avatar from "../ui/Avatar";
 import WorkspaceSelector from "../workspace/WorkspaceSelector";
+import Logo from "../common/Logo";
 import { cn } from "../../lib/utils";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -67,14 +68,7 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
     >
       {/* Header (pinned at top) */}
       <div className="flex h-16 items-center gap-2.5 px-3.5 shrink-0">
-        <div className="brand-gradient grid h-10 w-10 shrink-0 place-items-center rounded-2xl shadow-[var(--shadow-brand)]">
-          <Zap className="h-5 w-5 fill-white text-white" />
-        </div>
-        {!collapsed && (
-          <span className="flex-1 truncate font-display text-[17px] font-bold tracking-tight text-ink">
-            Fwork
-          </span>
-        )}
+        <Logo size="lg" showText={!collapsed} />
         {!collapsed && (
           <button
             onClick={onToggle}

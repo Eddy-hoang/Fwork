@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Zap } from "lucide-react";
+import Logo from "../components/common/Logo";
 import { useAuth } from "../context/AuthContext";
 import { Input } from "../components/ui/Input";
 import Button from "../components/ui/Button";
@@ -80,14 +80,9 @@ const Login = () => {
         <div className="w-full max-w-sm animate-in">
           <Link
             to="/"
-            className="mb-8 flex items-center justify-center gap-2.5 font-semibold"
+            className="mb-8 flex items-center justify-center"
           >
-            <div className="brand-gradient flex h-10 w-10 items-center justify-center rounded-2xl shadow-[var(--shadow-brand)]">
-              <Zap className="h-5 w-5 fill-white text-white" />
-            </div>
-            <span className="font-display text-lg font-bold tracking-tight">
-              Fwork
-            </span>
+            <Logo size="lg" />
           </Link>
 
           <div className="card rounded-3xl p-8 shadow-[var(--shadow-soft)]">
