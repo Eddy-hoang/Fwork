@@ -208,12 +208,17 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
         permissionService.checkManageMembers(workspaceId, currentUser.getId());
 
-        User targetUser = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + request.getEmail()));
+        WorkspaceRole callerRole = permissionService.getWorkspaceRole(workspaceId, currentUser.getId());
+        if (callerRole == WorkspaceRole.ADMIN && request.getRole() != WorkspaceRole.MEMBER) {
+            throw new ForbiddenOperationException("ADMINs can only add MEMBER-role users");
+        }
 
         if (request.getRole() == WorkspaceRole.OWNER) {
-            throw new IllegalArgumentException("Cannot invite a member with OWNER role");
+            throw new ForbiddenOperationException("Cannot assign OWNER role directly — use transfer ownership");
         }
+
+        User targetUser = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + request.getEmail()));
 
         boolean alreadyMember = workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, targetUser.getId());
         if (alreadyMember) {

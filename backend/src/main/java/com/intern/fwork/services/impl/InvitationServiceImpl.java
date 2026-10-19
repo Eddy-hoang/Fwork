@@ -22,6 +22,9 @@ import com.intern.fwork.security.SecurityUtils;
 import com.intern.fwork.services.AuditLogService;
 import com.intern.fwork.services.InvitationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +50,18 @@ public class InvitationServiceImpl implements InvitationService {
     private final UserRepository userRepository;
     private final SecurityUtils securityUtils;
     private final AuditLogService auditLogService;
+
+    @Autowired(required = false)
+    private CacheManager cacheManager;
+
+    private void evictWorkspaceCache(UUID workspaceId) {
+        if (cacheManager != null) {
+            Cache cache = cacheManager.getCache("workspace");
+            if (cache != null) {
+                cache.evict(workspaceId);
+            }
+        }
+    }
 
     // ──────────────────────────────────────────────────────────────────────────
     // Send Invitation
@@ -146,6 +161,8 @@ public class InvitationServiceImpl implements InvitationService {
                 .role(invitation.getRole())
                 .build();
         workspaceMemberRepository.save(member);
+
+        evictWorkspaceCache(workspaceId);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -191,6 +208,8 @@ public class InvitationServiceImpl implements InvitationService {
         targetMembership.setRole(request.getRole());
         workspaceMemberRepository.save(targetMembership);
 
+        evictWorkspaceCache(workspaceId);
+
         auditLogService.log(
                 currentUser.getId(),
                 currentUser.getEmail(),
@@ -233,6 +252,8 @@ public class InvitationServiceImpl implements InvitationService {
 
         workspaceMemberRepository.save(callerMembership);
         workspaceMemberRepository.save(newOwnerMembership);
+
+        evictWorkspaceCache(workspaceId);
 
         auditLogService.log(
                 currentUser.getId(),
