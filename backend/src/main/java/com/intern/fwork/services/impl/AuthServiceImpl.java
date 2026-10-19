@@ -142,17 +142,26 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
+    private final org.springframework.web.client.RestTemplate googleRestTemplate = createGoogleRestTemplate();
+
+    private static org.springframework.web.client.RestTemplate createGoogleRestTemplate() {
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory =
+                new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(java.time.Duration.ofSeconds(3));
+        factory.setReadTimeout(java.time.Duration.ofSeconds(3));
+        return new org.springframework.web.client.RestTemplate(factory);
+    }
+
     @Override
     public RefreshTokenResponse refresh(
             RefreshTokenRequest request
     ) {
-
-        RefreshToken refreshToken =
-                refreshTokenService.verify(
+        RefreshToken rotatedRefreshToken =
+                refreshTokenService.rotate(
                         request.getRefreshToken()
                 );
 
-        User user = refreshToken.getUser();
+        User user = rotatedRefreshToken.getUser();
 
         CustomUserDetails userDetails =
                 new CustomUserDetails(user);
@@ -162,6 +171,7 @@ public class AuthServiceImpl implements AuthService {
 
         return RefreshTokenResponse.builder()
                 .accessToken(accessToken)
+                .refreshToken(rotatedRefreshToken.getToken())
                 .tokenType("Bearer")
                 .expiresIn(jwtService.getJwtExpiration() / 1000)
                 .build();
@@ -174,24 +184,48 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Google ID token is required");
         }
 
+        if (googleClientId == null || googleClientId.isBlank()) {
+            log.error("Google Sign-In attempted but server is missing GOOGLE_CLIENT_ID configuration");
+            throw new IllegalStateException("Google Sign-In is not configured on the server");
+        }
+
         try {
-            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
             String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken;
-            org.springframework.http.ResponseEntity<Map> responseEntity = restTemplate.getForEntity(url, Map.class);
+            org.springframework.http.ResponseEntity<Map> responseEntity = googleRestTemplate.getForEntity(url, Map.class);
             Map<String, Object> payload = responseEntity.getBody();
 
             if (payload == null || payload.containsKey("error_description")) {
                 throw new org.springframework.security.access.AccessDeniedException("Invalid Google token");
             }
 
-            // SECURITY: Validate the 'aud' claim to prevent cross-app token replay attacks.
-            // A valid Google ID token issued for a different app must NOT be accepted here.
-            if (googleClientId != null && !googleClientId.isBlank()) {
-                String tokenAud = (String) payload.get("aud");
-                if (!googleClientId.equals(tokenAud)) {
-                    log.warn("Google token audience mismatch: expected={}, got={}", googleClientId, tokenAud);
-                    throw new org.springframework.security.access.AccessDeniedException("Invalid Google token: audience mismatch");
-                }
+            // 1. Mandatory Audience validation
+            String tokenAud = (String) payload.get("aud");
+            if (!googleClientId.equals(tokenAud)) {
+                log.warn("Google token audience mismatch");
+                throw new org.springframework.security.access.AccessDeniedException("Invalid Google token: audience mismatch");
+            }
+
+            // 2. Issuer validation
+            String iss = (String) payload.get("iss");
+            if (iss == null || (!"https://accounts.google.com".equals(iss) && !"accounts.google.com".equals(iss))) {
+                log.warn("Google token issuer mismatch");
+                throw new org.springframework.security.access.AccessDeniedException("Invalid Google token: issuer mismatch");
+            }
+
+            // 3. email_verified validation
+            Object emailVerifiedObj = payload.get("email_verified");
+            boolean emailVerified = emailVerifiedObj instanceof Boolean
+                    ? (Boolean) emailVerifiedObj
+                    : "true".equalsIgnoreCase(String.valueOf(emailVerifiedObj));
+            if (!emailVerified) {
+                log.warn("Google authentication rejected: email is not verified");
+                throw new org.springframework.security.access.AccessDeniedException("Google account email is not verified");
+            }
+
+            // 4. Stable sub identifier
+            String googleSub = (String) payload.get("sub");
+            if (googleSub == null || googleSub.isBlank()) {
+                throw new org.springframework.security.access.AccessDeniedException("Google token missing sub claim");
             }
 
             String email = (String) payload.get("email");
@@ -202,11 +236,12 @@ public class AuthServiceImpl implements AuthService {
                 throw new org.springframework.security.access.AccessDeniedException("Email not provided by Google");
             }
 
-            java.util.Optional<User> userOpt = userRepository.findByEmail(email);
+            // 5. Safe Account Linking by sub and email
+            java.util.Optional<User> userBySub = userRepository.findByGoogleSub(googleSub);
             User user;
 
-            if (userOpt.isPresent()) {
-                user = userOpt.get();
+            if (userBySub.isPresent()) {
+                user = userBySub.get();
                 if (name != null && !name.isBlank()) {
                     user.setName(name);
                 }
@@ -215,16 +250,34 @@ public class AuthServiceImpl implements AuthService {
                 }
                 user = userRepository.save(user);
             } else {
-                user = User.builder()
-                        .name(name != null ? name : email.split("@")[0])
-                        .email(email)
-                        .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
-                        .role(Role.USER)
-                        .avatar(picture)
-                        .build();
-                user = userRepository.save(user);
-                createDefaultWorkspace(user);
-                log.info("Created new user via Google login: {}", email);
+                java.util.Optional<User> userByEmail = userRepository.findByEmail(email);
+                if (userByEmail.isPresent()) {
+                    user = userByEmail.get();
+                    if (user.getGoogleSub() != null && !user.getGoogleSub().equals(googleSub)) {
+                        log.warn("Account linking conflict: email is already linked to another Google identity");
+                        throw new org.springframework.security.access.AccessDeniedException(
+                                "Account linking conflict: email is already linked to another Google identity"
+                        );
+                    }
+                    user.setGoogleSub(googleSub);
+                    if (picture != null && !picture.isBlank()) {
+                        user.setAvatar(picture);
+                    }
+                    user = userRepository.save(user);
+                    log.info("Linked Google identity to existing user account: {}", email);
+                } else {
+                    user = User.builder()
+                            .name(name != null ? name : email.split("@")[0])
+                            .email(email)
+                            .googleSub(googleSub)
+                            .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
+                            .role(Role.USER)
+                            .avatar(picture)
+                            .build();
+                    user = userRepository.save(user);
+                    createDefaultWorkspace(user);
+                    log.info("Created new user via Google login: {}", email);
+                }
             }
 
             CustomUserDetails userDetails = new CustomUserDetails(user);
@@ -239,8 +292,12 @@ public class AuthServiceImpl implements AuthService {
                     .user(userMapper.toResponse(user))
                     .build();
 
+        } catch (org.springframework.security.access.AccessDeniedException ex) {
+            throw ex;
+        } catch (IllegalStateException ex) {
+            throw ex;
         } catch (Exception e) {
-            log.error("Google authentication failed: {}", e.getMessage(), e);
+            log.error("Google authentication failed: {}", e.getMessage());
             throw new org.springframework.security.access.AccessDeniedException("Google authentication failed: " + e.getMessage());
         }
     }

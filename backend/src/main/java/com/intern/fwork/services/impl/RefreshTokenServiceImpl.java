@@ -26,10 +26,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public RefreshToken create(User user) {
+        UUID familyId = UUID.randomUUID();
         RefreshToken refreshToken =
                 RefreshToken.builder()
                         .token(UUID.randomUUID().toString())
                         .user(user)
+                        .familyId(familyId)
                         .expiryDate(
                                 Instant.now().plusMillis(refreshExpiration)
                         )
@@ -37,7 +39,47 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                         .build();
 
         return refreshTokenRepository.save(refreshToken);
+    }
 
+    @Override
+    public RefreshToken rotate(String token) {
+        RefreshToken oldToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found"));
+
+        User user = oldToken.getUser();
+
+        // REPLAY / REUSE DETECTION:
+        // If an already revoked token is submitted, assume compromise and revoke all sessions for this user.
+        if (oldToken.isRevoked()) {
+            revokeAll(user);
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Refresh token reuse detected. All user sessions have been revoked."
+            );
+        }
+
+        if (oldToken.getExpiryDate().isBefore(Instant.now())) {
+            throw new org.springframework.security.access.AccessDeniedException("Refresh token expired");
+        }
+
+        // Atomically revoke the consumed token
+        oldToken.setRevoked(true);
+
+        UUID familyId = oldToken.getFamilyId() != null ? oldToken.getFamilyId() : UUID.randomUUID();
+        oldToken.setFamilyId(familyId);
+
+        String newTokenString = UUID.randomUUID().toString();
+        oldToken.setReplacedBy(newTokenString);
+        refreshTokenRepository.save(oldToken);
+
+        RefreshToken newToken = RefreshToken.builder()
+                .token(newTokenString)
+                .user(user)
+                .familyId(familyId)
+                .expiryDate(Instant.now().plusMillis(refreshExpiration))
+                .revoked(false)
+                .build();
+
+        return refreshTokenRepository.save(newToken);
     }
 
     @Override
@@ -49,11 +91,11 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                                 new ResourceNotFoundException("Refresh token not found"));
 
         if (refreshToken.isRevoked()) {
-            throw new RuntimeException("Refresh token revoked");
+            throw new org.springframework.security.access.AccessDeniedException("Refresh token revoked");
         }
 
         if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
-            throw new RuntimeException("Refresh token expired");
+            throw new org.springframework.security.access.AccessDeniedException("Refresh token expired");
         }
 
         return refreshToken;

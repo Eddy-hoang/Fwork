@@ -30,4 +30,10 @@ public class RefreshToken {
 
     @Column(nullable = false)
     private boolean revoked;
+
+    @Column(name = "family_id")
+    private UUID familyId;
+
+    @Column(name = "replaced_by")
+    private String replacedBy;
 }

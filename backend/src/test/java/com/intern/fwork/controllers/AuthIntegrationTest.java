@@ -121,27 +121,41 @@ public class AuthIntegrationTest {
                         .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isUnauthorized());
 
-        // --- 3. REFRESH TOKEN ---
+        // --- 3. REFRESH TOKEN (ROTATION) ---
         RefreshTokenRequest refreshReq = new RefreshTokenRequest();
         refreshReq.setRefreshToken(refreshToken);
 
-        mockMvc.perform(post("/api/auth/refresh")
+        String refreshRes = mockMvc.perform(post("/api/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(refreshReq)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data.accessToken", notNullValue()));
+                .andExpect(jsonPath("$.data.accessToken", notNullValue()))
+                .andExpect(jsonPath("$.data.refreshToken", notNullValue()))
+                .andReturn().getResponse().getContentAsString();
 
-        // Refresh with invalid token -> Expected 401 Unauthorized or 404 (token not found)
-        refreshReq.setRefreshToken("invalid-refresh-token");
+        String newRefreshToken = objectMapper.readTree(refreshRes).path("data").path("refreshToken").asText();
+        org.junit.jupiter.api.Assertions.assertNotEquals(refreshToken, newRefreshToken);
+
+        // --- 3b. REPLAY DETECTION ---
+        // Presenting the already consumed old refresh token must be rejected
         mockMvc.perform(post("/api/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(refreshReq)))
+                .andExpect(status().isForbidden());
+
+        // Refresh with invalid token -> Expected 404 (token not found)
+        RefreshTokenRequest invalidReq = new RefreshTokenRequest();
+        invalidReq.setRefreshToken("invalid-refresh-token");
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidReq)))
                 .andExpect(status().isNotFound());
 
         // --- 4. LOGOUT ---
+        // Logging out with the active rotated token succeeds
         RefreshTokenRequest logoutReq = new RefreshTokenRequest();
-        logoutReq.setRefreshToken(refreshToken);
+        logoutReq.setRefreshToken(newRefreshToken);
 
         mockMvc.perform(post("/api/auth/logout")
                         .contentType(MediaType.APPLICATION_JSON)

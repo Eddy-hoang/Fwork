@@ -57,8 +57,9 @@ api.interceptors.response.use(
             .then((res) => {
               const data = res.data?.data || res.data;
               const newToken = data?.accessToken;
+              const newRefreshToken = data?.refreshToken;
               if (newToken) {
-                setToken(newToken);
+                setToken(newToken, newRefreshToken);
                 return newToken;
               }
               throw new Error("No access token returned");

@@ -12,6 +12,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     //SELECT * FROM users WHERE email = ?
     Optional<User> findByEmail(String mail);
 
+    Optional<User> findByGoogleSub(String googleSub);
+
     //dùng cho đăng kí
     //SELECT EXISTS (
     //    SELECT *

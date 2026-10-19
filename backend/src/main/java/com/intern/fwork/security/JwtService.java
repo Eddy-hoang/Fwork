@@ -24,15 +24,33 @@ public class JwtService {
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
 
+    private SecretKey signingKey;
+
+    @jakarta.annotation.PostConstruct
+    public void validateConfiguration() {
+        if (secretKey == null || secretKey.trim().isEmpty()) {
+            throw new IllegalStateException("JWT secret (jwt.secret / JWT_SECRET) must not be empty or blank");
+        }
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secretKey.trim());
+            if (keyBytes.length < 32) {
+                throw new IllegalStateException("JWT secret must be at least 256 bits (32 bytes) for secure HMAC-SHA signing");
+            }
+            this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalStateException("JWT secret must be a valid Base64-encoded string: " + ex.getMessage(), ex);
+        }
+    }
+
     public long getJwtExpiration() {
         return jwtExpiration;
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes =
-                Decoders.BASE64.decode(secretKey);
-
-        return Keys.hmacShaKeyFor(keyBytes);
+        if (signingKey == null) {
+            validateConfiguration();
+        }
+        return signingKey;
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -87,15 +105,6 @@ public class JwtService {
     ) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
-    }
-
-    public String generateRefreshToken(UserDetails userDetails) {
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .signWith(getSigningKey())
-                .compact();
     }
 
     public long getExpiration() {

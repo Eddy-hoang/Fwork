@@ -37,6 +37,9 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Column(name = "google_sub", unique = true)
+    private String googleSub;
+
     @OneToMany(mappedBy = "user")
     private List<RefreshToken> refreshTokens;
 
