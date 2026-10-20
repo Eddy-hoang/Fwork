@@ -293,26 +293,26 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    Start([Bắt đầu kéo thẻ]) --> Drag[Client A kéo thẻ sang cột mới]
-    Drag --> Drop[Thả thẻ vào vị trí đích]
-    Drop --> Optimistic[Giao diện Client A cập nhật vị trí ngay lập tức]
-    Optimistic --> API[Gửi PATCH /api/tasks/{id}/move kèm newPosition]
+    Start([Bắt đầu kéo thẻ]) --> Drag["Client A kéo thẻ sang cột mới"]
+    Drag --> Drop["Thả thẻ vào vị trí đích"]
+    Drop --> Optimistic["Giao diện Client A cập nhật vị trí ngay lập tức"]
+    Optimistic --> API["Gửi PATCH /api/tasks/:id/move kèm newPosition"]
     
     API --> RateCheck{Kiểm tra Rate Limit?}
-    RateCheck -->|Vượt ngưỡng| RejectRate[Trả về 429 Too Many Requests]
-    RejectRate --> Rollback[Khôi phục vị trí thẻ trên UI & Báo lỗi]
+    RateCheck -->|Vượt ngưỡng| RejectRate["Trả về 429 Too Many Requests"]
+    RejectRate --> Rollback["Khôi phục vị trí thẻ trên UI & Báo lỗi"]
     
     RateCheck -->|Hợp lệ| PermCheck{Kiểm tra quyền truy cập Workspace?}
-    PermCheck -->|Không có quyền| RejectPerm[Trả về 403 Forbidden]
+    PermCheck -->|Không có quyền| RejectPerm["Trả về 403 Forbidden"]
     RejectPerm --> Rollback
     
-    PermCheck -->|Hợp lệ| DBUpdate[Lưu ColumnID & Position vào PostgreSQL]
+    PermCheck -->|Hợp lệ| DBUpdate["Lưu ColumnID & Position vào PostgreSQL"]
     DBUpdate --> TxCheck{Giao dịch DB thành công?}
     
     TxCheck -->|Lỗi| Rollback
-    TxCheck -->|Thành công| AuditEvt[Ghi nhận TaskActivity vào Audit Log]
-    AuditEvt --> STOMP[WebSocket Broker gửi payload tới /topic/boards/{boardId}]
-    STOMP --> ClientSync[Client B, C... nhận message & render cập nhật tức thì]
+    TxCheck -->|Thành công| AuditEvt["Ghi nhận TaskActivity vào Audit Log"]
+    AuditEvt --> STOMP["WebSocket Broker broadcast tới /topic/boards/:boardId"]
+    STOMP --> ClientSync["Client B, C... nhận message & render cập nhật tức thì"]
     ClientSync --> Done([Hoàn tất đồng bộ])
 ```
 
@@ -341,12 +341,12 @@ sequenceDiagram
 
     Ext->>API: GET /api/workspaces (kèm Bearer Token)
     API-->>Ext: Danh sách Workspace khả dụng
-    User->>Ext: Chọn Workspace ➔ Chọn Board ➔ Chọn Cột
-    Ext->>API: GET /api/boards/{id}/columns
+    User->>Ext: Chọn Workspace -> Chọn Board -> Chọn Cột
+    Ext->>API: GET /api/boards/:id/columns
     API-->>Ext: Danh sách các cột của Board đã chọn
 
     User->>Ext: Nhấn nút "Tạo công việc" (Create Task)
-    Ext->>API: POST /api/columns/{columnId}/tasks
+    Ext->>API: POST /api/columns/:columnId/tasks
     API->>DB: Lưu Task mới vào CSDL
     API-->>Ext: 201 Created (Thông tin thẻ thành công)
     Ext-->>User: Hiển thị thông báo thành công & nút mở trực tiếp trên Web
