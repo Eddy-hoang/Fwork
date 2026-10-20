@@ -1,4 +1,4 @@
-import { ApiResponse, BoardColumnResponse, BoardResponse, CreateTaskRequest, LoginRequest, LoginResponse, TaskResponse } from './types';
+import { ApiResponse, BoardColumnResponse, BoardResponse, CreateTaskRequest, LoginRequest, LoginResponse, TaskResponse, WorkspaceResponse } from './types';
 
 export const DEFAULT_API_BASE = 'https://backend-8vi0.onrender.com/api';
 export const DEFAULT_WEB_BASE = 'https://fwork-web.vercel.app';
@@ -124,6 +124,18 @@ export class ApiClient {
     return this.request<LoginResponse>('/auth/google', {
       method: 'POST',
       body: JSON.stringify({ token: idToken }),
+    });
+  }
+
+  async getWorkspaces(): Promise<WorkspaceResponse[]> {
+    return this.request<WorkspaceResponse[]>('/workspaces', {
+      method: 'GET',
+    });
+  }
+
+  async getWorkspaceBoards(workspaceId: string): Promise<BoardResponse[]> {
+    return this.request<BoardResponse[]>(`/workspaces/${workspaceId}/boards`, {
+      method: 'GET',
     });
   }
 

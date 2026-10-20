@@ -21,6 +21,7 @@ export const App: React.FC = () => {
     boardId: string;
     boardTitle?: string;
     columnName?: string;
+    workspaceName?: string;
   } | null>(null);
 
   if (loading) {
@@ -50,6 +51,7 @@ export const App: React.FC = () => {
         boardId={createdTaskInfo.boardId}
         boardTitle={createdTaskInfo.boardTitle}
         columnName={createdTaskInfo.columnName}
+        workspaceName={createdTaskInfo.workspaceName}
         webBaseUrl={webBaseUrl}
         onReset={() => setCreatedTaskInfo(null)}
       />
@@ -61,8 +63,8 @@ export const App: React.FC = () => {
       user={user}
       onLogout={logout}
       onAuthExpired={logout}
-      onSuccess={(task, boardId, boardTitle, columnName) => {
-        setCreatedTaskInfo({ task, boardId, boardTitle, columnName });
+      onSuccess={(task, boardId, boardTitle, columnName, workspaceName) => {
+        setCreatedTaskInfo({ task, boardId, boardTitle, columnName, workspaceName });
       }}
     />
   );

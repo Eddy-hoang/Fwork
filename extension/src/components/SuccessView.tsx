@@ -7,6 +7,7 @@ interface SuccessViewProps {
   boardId: string;
   boardTitle?: string;
   columnName?: string;
+  workspaceName?: string;
   webBaseUrl: string;
   onReset: () => void;
 }
@@ -16,6 +17,7 @@ export const SuccessView: React.FC<SuccessViewProps> = ({
   boardId,
   boardTitle,
   columnName,
+  workspaceName,
   webBaseUrl,
   onReset,
 }) => {
@@ -63,6 +65,12 @@ export const SuccessView: React.FC<SuccessViewProps> = ({
             <div className="success-task-destination">
               <FolderKanban size={13} color="var(--md-primary)" />
               <span>Saved into</span>
+              {workspaceName && (
+                <>
+                  <span className="destination-chip">{workspaceName}</span>
+                  <span style={{ color: 'var(--md-outline-strong)' }}>›</span>
+                </>
+              )}
               {boardTitle ? (
                 <span className="destination-chip">{boardTitle}</span>
               ) : (

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Bookmark, Globe, AlertCircle, LogOut, X, ChevronDown, Layers, ExternalLink, User } from 'lucide-react';
 import { api, AuthenticationError, ForbiddenError } from '../api/client';
-import { BoardColumnResponse, BoardResponse, TaskResponse, UserResponse } from '../api/types';
+import { BoardColumnResponse, BoardResponse, TaskResponse, UserResponse, WorkspaceResponse } from '../api/types';
 import { useActiveTab } from '../hooks/useActiveTab';
 
 interface CaptureViewProps {
   user?: UserResponse;
   onLogout: () => void;
   onAuthExpired: () => void;
-  onSuccess: (task: TaskResponse, boardId: string, boardTitle?: string, columnName?: string) => void;
+  onSuccess: (task: TaskResponse, boardId: string, boardTitle?: string, columnName?: string, workspaceName?: string) => void;
 }
 
 export const CaptureView: React.FC<CaptureViewProps> = ({
@@ -21,12 +21,15 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [workspaces, setWorkspaces] = useState<WorkspaceResponse[]>([]);
   const [boards, setBoards] = useState<BoardResponse[]>([]);
   const [columns, setColumns] = useState<BoardColumnResponse[]>([]);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
   const [selectedBoardId, setSelectedBoardId] = useState<string>('');
   const [selectedColumnId, setSelectedColumnId] = useState<string>('');
 
-  const [loadingBoards, setLoadingBoards] = useState<boolean>(true);
+  const [loadingWorkspaces, setLoadingWorkspaces] = useState<boolean>(true);
+  const [loadingBoards, setLoadingBoards] = useState<boolean>(false);
   const [loadingColumns, setLoadingColumns] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,18 +55,67 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
     }
   }, [activeTab.title]);
 
-  // Load Boards on mount
+  // 1. Load Workspaces on mount
   useEffect(() => {
     let isMounted = true;
-    setLoadingBoards(true);
+    setLoadingWorkspaces(true);
     setError(null);
 
-    api.getBoards()
+    api.getWorkspaces()
+      .then((data) => {
+        if (!isMounted) return;
+        setWorkspaces(data);
+        if (data && data.length > 0) {
+          const savedWsId = localStorage.getItem('fwork_extension_workspace_id');
+          const matched = savedWsId ? data.find((w) => w.id === savedWsId) : null;
+          setSelectedWorkspaceId(matched ? matched.id : data[0].id);
+        } else {
+          // If no workspaces returned, fallback to empty string (which fetches default boards)
+          setSelectedWorkspaceId('');
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        if (err instanceof AuthenticationError) {
+          onAuthExpired();
+        } else if (err instanceof ForbiddenError) {
+          setError('Permission denied when accessing workspaces.');
+        } else {
+          setError(err?.message || 'Failed to load workspaces.');
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoadingWorkspaces(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [onAuthExpired]);
+
+  // 2. Load Boards whenever selectedWorkspaceId changes or workspaces finish loading
+  useEffect(() => {
+    if (loadingWorkspaces) return;
+
+    let isMounted = true;
+    setLoadingBoards(true);
+    setBoards([]);
+    setSelectedBoardId('');
+    setColumns([]);
+    setSelectedColumnId('');
+
+    const fetchPromise = selectedWorkspaceId
+      ? api.getWorkspaceBoards(selectedWorkspaceId)
+      : api.getBoards();
+
+    fetchPromise
       .then((data) => {
         if (!isMounted) return;
         setBoards(data);
-        if (data.length > 0) {
+        if (data && data.length > 0) {
           setSelectedBoardId(data[0].id);
+        } else {
+          setSelectedBoardId('');
         }
       })
       .catch((err) => {
@@ -73,7 +125,7 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
         } else if (err instanceof ForbiddenError) {
           setError('Permission denied when accessing boards.');
         } else {
-          setError(err?.message || 'Failed to load boards.');
+          setError(err?.message || 'Failed to load boards for this workspace.');
         }
       })
       .finally(() => {
@@ -83,9 +135,9 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [onAuthExpired]);
+  }, [selectedWorkspaceId, loadingWorkspaces, onAuthExpired]);
 
-  // Load Columns whenever selectedBoardId changes
+  // 3. Load Columns whenever selectedBoardId changes
   useEffect(() => {
     if (!selectedBoardId) {
       setColumns([]);
@@ -123,6 +175,13 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
     };
   }, [selectedBoardId, onAuthExpired]);
 
+  const handleWorkspaceChange = (newWsId: string) => {
+    setSelectedWorkspaceId(newWsId);
+    try {
+      localStorage.setItem('fwork_extension_workspace_id', newWsId);
+    } catch {}
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
@@ -152,9 +211,10 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
         description: finalDescription,
       });
 
+      const currentWorkspace = workspaces.find((w) => w.id === selectedWorkspaceId);
       const currentBoard = boards.find((b) => b.id === selectedBoardId);
       const currentColumn = columns.find((c) => c.id === selectedColumnId);
-      onSuccess(task, selectedBoardId, currentBoard?.title, currentColumn?.name);
+      onSuccess(task, selectedBoardId, currentBoard?.title, currentColumn?.name, currentWorkspace?.name);
     } catch (err: any) {
       if (err instanceof AuthenticationError) {
         onAuthExpired();
@@ -278,11 +338,38 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
           </div>
         </div>
 
-        {/* Destination Group: Board & Column */}
+        {/* Destination Group: Workspace, Board & Column */}
         <div className="destination-panel">
           <div className="destination-header">
             <Layers size={13} />
             <span>DESTINATION</span>
+          </div>
+
+          {/* Workspace Selector */}
+          <div className="field-group">
+            <label className="field-label" htmlFor="workspace-select">Workspace</label>
+            <div className="select-wrapper">
+              <select
+                id="workspace-select"
+                className="select-control"
+                value={selectedWorkspaceId}
+                onChange={(e) => handleWorkspaceChange(e.target.value)}
+                disabled={loadingWorkspaces || submitting || workspaces.length === 0}
+              >
+                {loadingWorkspaces ? (
+                  <option>Loading workspaces...</option>
+                ) : workspaces.length === 0 ? (
+                  <option value="">No workspaces found</option>
+                ) : (
+                  workspaces.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))
+                )}
+              </select>
+              <ChevronDown size={14} className="select-chevron" />
+            </div>
           </div>
 
           <div className="destination-grid">
@@ -368,7 +455,7 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
           form="capture-form"
           type="submit"
           className="btn-primary"
-          disabled={submitting || loadingBoards || loadingColumns || !selectedColumnId || !title.trim()}
+          disabled={submitting || loadingWorkspaces || loadingBoards || loadingColumns || !selectedColumnId || !title.trim()}
         >
           {submitting ? (
             <>

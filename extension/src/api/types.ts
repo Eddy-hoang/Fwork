@@ -28,6 +28,16 @@ export interface LoginResponse {
   user: UserResponse;
 }
 
+export interface WorkspaceResponse {
+  id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  memberCount?: number;
+  boardCount?: number;
+  currentUserRole?: string;
+}
+
 export interface BoardResponse {
   id: string;
   title: string;
