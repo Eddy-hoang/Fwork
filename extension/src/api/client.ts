@@ -120,6 +120,13 @@ export class ApiClient {
     });
   }
 
+  async loginWithGoogle(idToken: string): Promise<LoginResponse> {
+    return this.request<LoginResponse>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ token: idToken }),
+    });
+  }
+
   async getBoards(): Promise<BoardResponse[]> {
     return this.request<BoardResponse[]>('/boards', {
       method: 'GET',

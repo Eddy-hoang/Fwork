@@ -68,6 +68,25 @@ export function useAuth() {
     return res;
   }, [session]);
 
+  const loginWithGoogle = useCallback(async (idToken: string, customApiUrl?: string, customWebUrl?: string) => {
+    const targetApi = customApiUrl || session?.apiBaseUrl || DEFAULT_API_BASE;
+    const targetWeb = customWebUrl || session?.webBaseUrl || DEFAULT_WEB_BASE;
+    api.setBaseUrl(targetApi);
+
+    const res = await api.loginWithGoogle(idToken);
+    const newSession: ExtensionSession = {
+      token: res.accessToken,
+      user: res.user,
+      apiBaseUrl: targetApi,
+      webBaseUrl: targetWeb,
+    };
+
+    api.setToken(res.accessToken);
+    await setStoredSession(newSession);
+    setSession(newSession);
+    return res;
+  }, [session]);
+
   const logout = useCallback(async () => {
     api.setToken(null);
     await setStoredSession(null);
@@ -92,6 +111,7 @@ export function useAuth() {
     isAuthenticated: Boolean(session?.token),
     loading,
     login,
+    loginWithGoogle,
     logout,
     updateUrls,
     webBaseUrl: session?.webBaseUrl || DEFAULT_WEB_BASE,

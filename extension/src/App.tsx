@@ -11,6 +11,7 @@ export const App: React.FC = () => {
     isAuthenticated,
     loading,
     login,
+    loginWithGoogle,
     logout,
     webBaseUrl,
   } = useAuth();
@@ -18,13 +19,17 @@ export const App: React.FC = () => {
   const [createdTaskInfo, setCreatedTaskInfo] = useState<{
     task: TaskResponse;
     boardId: string;
+    boardTitle?: string;
+    columnName?: string;
   } | null>(null);
 
   if (loading) {
     return (
-      <div className="popup-container centered-loading">
-        <div className="spinner" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent', width: 24, height: 24 }} />
-        <span>Loading Fwork Companion...</span>
+      <div className="app-shell" style={{ alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+        <div className="spinner-dot spinner-primary" style={{ width: 24, height: 24, borderWidth: 3 }} />
+        <span style={{ fontSize: 12, color: 'var(--md-outline-strong)', fontWeight: 500 }}>
+          Loading Fwork Companion...
+        </span>
       </div>
     );
   }
@@ -33,6 +38,7 @@ export const App: React.FC = () => {
     return (
       <LoginView
         onLogin={login}
+        onGoogleLogin={loginWithGoogle}
       />
     );
   }
@@ -42,6 +48,8 @@ export const App: React.FC = () => {
       <SuccessView
         task={createdTaskInfo.task}
         boardId={createdTaskInfo.boardId}
+        boardTitle={createdTaskInfo.boardTitle}
+        columnName={createdTaskInfo.columnName}
         webBaseUrl={webBaseUrl}
         onReset={() => setCreatedTaskInfo(null)}
       />
@@ -53,8 +61,8 @@ export const App: React.FC = () => {
       user={user}
       onLogout={logout}
       onAuthExpired={logout}
-      onSuccess={(task, boardId) => {
-        setCreatedTaskInfo({ task, boardId });
+      onSuccess={(task, boardId, boardTitle, columnName) => {
+        setCreatedTaskInfo({ task, boardId, boardTitle, columnName });
       }}
     />
   );

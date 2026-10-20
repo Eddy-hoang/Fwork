@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bookmark, Globe, AlertCircle, LogOut } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Bookmark, Globe, AlertCircle, LogOut, X, ChevronDown, Layers, ExternalLink, User } from 'lucide-react';
 import { api, AuthenticationError, ForbiddenError } from '../api/client';
 import { BoardColumnResponse, BoardResponse, TaskResponse, UserResponse } from '../api/types';
 import { useActiveTab } from '../hooks/useActiveTab';
@@ -8,7 +8,7 @@ interface CaptureViewProps {
   user?: UserResponse;
   onLogout: () => void;
   onAuthExpired: () => void;
-  onSuccess: (task: TaskResponse, boardId: string) => void;
+  onSuccess: (task: TaskResponse, boardId: string, boardTitle?: string, columnName?: string) => void;
 }
 
 export const CaptureView: React.FC<CaptureViewProps> = ({
@@ -30,6 +30,18 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
   const [loadingColumns, setLoadingColumns] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [faviconError, setFaviconError] = useState<boolean>(false);
+
+  // Derive domain from active tab URL
+  const domain = useMemo(() => {
+    if (!activeTab.url) return '';
+    try {
+      const parsed = new URL(activeTab.url);
+      return parsed.hostname.replace(/^www\./, '');
+    } catch {
+      return '';
+    }
+  }, [activeTab.url]);
 
   // Sync tab title into editable title input once loaded
   const titleInitialized = useRef(false);
@@ -40,7 +52,7 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
     }
   }, [activeTab.title]);
 
-  // Load Boards
+  // Load Boards on mount
   useEffect(() => {
     let isMounted = true;
     setLoadingBoards(true);
@@ -113,7 +125,7 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting) return; // Prevent duplicate submissions
+    if (submitting) return;
 
     if (!title.trim()) {
       setError('Task title is required.');
@@ -128,7 +140,7 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
     setError(null);
     setSubmitting(true);
 
-    // Format description without inventing unsupported sourceUrl property
+    // Format description preserving URL append standard
     const sourceText = activeTab.url ? `Source: ${activeTab.url}` : '';
     const finalDescription = description.trim()
       ? (sourceText ? `${description.trim()}\n\n${sourceText}` : description.trim())
@@ -140,14 +152,16 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
         description: finalDescription,
       });
 
-      onSuccess(task, selectedBoardId);
+      const currentBoard = boards.find((b) => b.id === selectedBoardId);
+      const currentColumn = columns.find((c) => c.id === selectedColumnId);
+      onSuccess(task, selectedBoardId, currentBoard?.title, currentColumn?.name);
     } catch (err: any) {
       if (err instanceof AuthenticationError) {
         onAuthExpired();
       } else if (err instanceof ForbiddenError) {
         setError('Permission denied: You cannot create tasks in this column.');
       } else {
-        setError(err?.message || 'Failed to create task. Submission result is uncertain.');
+        setError(err?.message || 'Failed to create task. Please try again.');
       }
     } finally {
       setSubmitting(false);
@@ -155,143 +169,219 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
   };
 
   return (
-    <div className="popup-container">
-      {/* Header */}
-      <div className="popup-header">
-        <div className="header-brand">
-          <div className="header-logo">F</div>
-          <div>
-            <div className="header-title">Save to Fwork</div>
+    <div className="app-shell">
+      {/* Sticky Header */}
+      <header className="app-header">
+        <div className="brand-badge">
+          <div className="brand-icon">
+            <img src="/icons/icon32.png" alt="Fwork" />
+          </div>
+          <div className="brand-text-stack">
+            <span className="brand-name">Fwork Companion</span>
             {user && (
-              <div className="header-user">
-                <span>{user.name || user.email}</span>
-              </div>
+              <span className="user-pill" title={user.email}>
+                <User size={10} />
+                <span>{user.name || user.email.split('@')[0]}</span>
+              </span>
             )}
           </div>
         </div>
-        <button
-          type="button"
-          className="icon-btn"
-          title="Sign out"
-          onClick={onLogout}
-        >
-          <LogOut size={16} />
-        </button>
-      </div>
 
-      {error && (
-        <div className="alert alert-error">
-          <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
-          <span>{error}</span>
+        <div className="header-actions">
+          <button
+            type="button"
+            className="icon-button"
+            title="Sign out"
+            onClick={onLogout}
+            aria-label="Sign out"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
-      )}
+      </header>
 
-      {/* Captured page pill */}
-      {activeTab.url && (
-        <div className="page-badge">
-          <Globe size={14} className="page-badge-icon" />
-          <div className="page-badge-content">
-            <div className="page-badge-title">{activeTab.title || 'Untitled Page'}</div>
-            <div className="page-badge-url">{activeTab.url}</div>
+      {/* Scrollable Form Body */}
+      <form id="capture-form" onSubmit={handleSubmit} className="app-body">
+        {/* Error Alert */}
+        {error && (
+          <div className="alert-box alert-error" role="alert">
+            <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Captured Webpage Preview Hero Card */}
+        {activeTab.url && (
+          <div className="webpage-hero-card">
+            <div className="webpage-favicon-box">
+              {activeTab.favIconUrl && !faviconError ? (
+                <img
+                  src={activeTab.favIconUrl}
+                  alt=""
+                  onError={() => setFaviconError(true)}
+                />
+              ) : (
+                <Globe size={14} color="var(--md-primary)" />
+              )}
+            </div>
+
+            <div className="webpage-details">
+              <div className="webpage-title-line" title={activeTab.title}>
+                {activeTab.title || 'Active Webpage'}
+              </div>
+              <div className="webpage-url-line" title={activeTab.url}>
+                {domain ? <span className="domain-pill">{domain}</span> : null}
+                <span style={{ fontSize: 10, color: 'var(--md-outline-strong)' }}>
+                  <ExternalLink size={9} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 2 }} />
+                  {activeTab.url.replace(/^https?:\/\//, '')}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Task Title Field */}
+        <div className="field-group">
+          <div className="field-header">
+            <label className="field-label" htmlFor="task-title">
+              Task Title <span style={{ color: 'var(--md-error)' }}>*</span>
+            </label>
+            <span className={`field-counter ${title.length > 240 ? 'warning' : ''}`}>
+              {title.length}/255
+            </span>
+          </div>
+          <div className="input-container input-with-trailing-icon">
+            <input
+              id="task-title"
+              type="text"
+              className="input-control"
+              maxLength={255}
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="What needs to be done?"
+              disabled={submitting}
+              autoFocus
+            />
+            {title && !submitting && (
+              <button
+                type="button"
+                className="trailing-btn"
+                title="Clear title"
+                onClick={() => setTitle('')}
+                aria-label="Clear task title"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
         </div>
-      )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label className="form-label" htmlFor="task-title">Task Title *</label>
-          <input
-            id="task-title"
-            type="text"
-            className="form-input"
-            maxLength={255}
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="What needs to be done?"
-            disabled={submitting}
-          />
+        {/* Destination Group: Board & Column */}
+        <div className="destination-panel">
+          <div className="destination-header">
+            <Layers size={13} />
+            <span>DESTINATION</span>
+          </div>
+
+          <div className="destination-grid">
+            {/* Board Selector */}
+            <div className="field-group">
+              <label className="field-label" htmlFor="board-select">Board</label>
+              <div className="select-wrapper">
+                <select
+                  id="board-select"
+                  className="select-control"
+                  value={selectedBoardId}
+                  onChange={(e) => setSelectedBoardId(e.target.value)}
+                  disabled={loadingBoards || submitting || boards.length === 0}
+                >
+                  {loadingBoards ? (
+                    <option>Loading boards...</option>
+                  ) : boards.length === 0 ? (
+                    <option value="">No boards found</option>
+                  ) : (
+                    boards.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.title}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <ChevronDown size={14} className="select-chevron" />
+              </div>
+            </div>
+
+            {/* Column Selector */}
+            <div className="field-group">
+              <label className="field-label" htmlFor="column-select">Column</label>
+              <div className="select-wrapper">
+                <select
+                  id="column-select"
+                  className="select-control"
+                  value={selectedColumnId}
+                  onChange={(e) => setSelectedColumnId(e.target.value)}
+                  disabled={loadingColumns || submitting || columns.length === 0}
+                >
+                  {loadingColumns ? (
+                    <option>Loading columns...</option>
+                  ) : columns.length === 0 ? (
+                    <option value="">No columns</option>
+                  ) : (
+                    columns.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <ChevronDown size={14} className="select-chevron" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="task-desc">Notes (Optional)</label>
+        {/* Notes (Optional) */}
+        <div className="field-group">
+          <div className="field-header">
+            <label className="field-label" htmlFor="task-desc">Notes (Optional)</label>
+          </div>
           <textarea
             id="task-desc"
-            className="form-textarea"
+            className="input-control textarea-control"
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add context or notes about this page..."
+            placeholder="Add context, thoughts, or acceptance criteria..."
             disabled={submitting}
           />
+          <span style={{ fontSize: 10.5, color: 'var(--md-outline-strong)', marginTop: 2 }}>
+            Source URL is attached to the description automatically.
+          </span>
         </div>
+      </form>
 
-        <div className="row-selectors">
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" htmlFor="board-select">Board</label>
-            <select
-              id="board-select"
-              className="form-select"
-              value={selectedBoardId}
-              onChange={(e) => setSelectedBoardId(e.target.value)}
-              disabled={loadingBoards || submitting || boards.length === 0}
-            >
-              {loadingBoards ? (
-                <option>Loading...</option>
-              ) : boards.length === 0 ? (
-                <option value="">No boards found</option>
-              ) : (
-                boards.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" htmlFor="column-select">Column</label>
-            <select
-              id="column-select"
-              className="form-select"
-              value={selectedColumnId}
-              onChange={(e) => setSelectedColumnId(e.target.value)}
-              disabled={loadingColumns || submitting || columns.length === 0}
-            >
-              {loadingColumns ? (
-                <option>Loading...</option>
-              ) : columns.length === 0 ? (
-                <option value="">No columns</option>
-              ) : (
-                columns.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-        </div>
-
+      {/* Sticky Pinned Footer Action */}
+      <footer className="app-footer">
         <button
+          form="capture-form"
           type="submit"
           className="btn-primary"
           disabled={submitting || loadingBoards || loadingColumns || !selectedColumnId || !title.trim()}
         >
           {submitting ? (
             <>
-              <div className="spinner" />
-              <span>Saving task...</span>
+              <div className="spinner-dot" />
+              <span>Saving to Fwork...</span>
             </>
           ) : (
             <>
-              <Bookmark size={15} />
+              <Bookmark size={16} />
               <span>Add to Fwork</span>
             </>
           )}
         </button>
-      </form>
+      </footer>
     </div>
   );
 };

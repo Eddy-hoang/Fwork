@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "pack": "npm run build && python -c \"import zipfile, os; z=zipfile.ZipFile('fwork-companion.zip', 'w', zipfile.ZIP_DEFLATED); [z.write(os.path.join(r, f), os.path.relpath(os.path.join(r, f), 'dist')) for r, d, fs in os.walk('dist') for f in fs]; z.close()\"",
     "preview": "vite preview"
   },
   "dependencies": {
