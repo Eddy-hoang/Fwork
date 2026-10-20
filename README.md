@@ -432,8 +432,8 @@ REDIS_SSL=false
 # =================================================================
 # 3. XÁC THỰC BẢO MẬT JWT (HMAC-SHA256)
 # =================================================================
-# Chuỗi Secret tối thiểu 256-bit (Base64 encoded)
-JWT_SECRET=B9KWlBRILyT59ftELaWsuZsXQb9/piaorNS/SuX4IMzgTFNphg7wVfzhfasqpWehb83ApfZee3gX1/UV1EMxoA==
+# Chuỗi Secret tối thiểu 256-bit (Base64 encoded) - Tạo nhanh bằng lệnh: openssl rand -base64 64
+JWT_SECRET=your_base64_encoded_jwt_secret_key_minimum_256_bits_here
 # Thời gian sống của Access Token: 900,000 ms (15 phút)
 JWT_EXPIRATION=900000
 # Thời gian sống của Refresh Token: 604,800,000 ms (7 ngày)
@@ -669,5 +669,5 @@ Dự án được phân phối dưới giấy phép mã nguồn mở **MIT Licen
 
 <p align="center">
   <em>Được thiết kế và duy trì bởi <strong>NghiaxEddy</strong></em><br>
-  <sub>Nếu bạn thấy dự án hữu ích, hãy để lại một ⭐️ Star để ủng hộ nhóm phát triển!</sub>
+  <sub>Nếu bạn thấy dự án hữu ích, hãy để lại một ⭐️ Star để ủng hộ NghiaxEddy!</sub>
 </p>
