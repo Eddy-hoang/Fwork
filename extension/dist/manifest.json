@@ -26,6 +26,7 @@
   ],
   "host_permissions": [
     "http://localhost:8080/*",
-    "https://*.vercel.app/*"
+    "https://*.vercel.app/*",
+    "https://*.onrender.com/*"
   ]
 }

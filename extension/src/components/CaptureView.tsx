@@ -174,7 +174,8 @@ export const CaptureView: React.FC<CaptureViewProps> = ({
       <header className="app-header">
         <div className="brand-badge">
           <div className="brand-icon">
-            <img src="/icons/icon32.png" alt="Fwork" />
+            <img src="/icons/icon32-light.png" alt="Fwork" className="logo-light" />
+            <img src="/icons/icon32-dark.png" alt="Fwork" className="logo-dark" />
           </div>
           <div className="brand-text-stack">
             <span className="brand-name">Fwork Companion</span>

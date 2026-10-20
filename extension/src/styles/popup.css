@@ -172,15 +172,31 @@ body {
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(103, 80, 164, 0.2);
+  box-shadow: 0 2px 6px rgba(103, 80, 164, 0.15);
 }
 
 .brand-icon img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: inherit;
   display: block;
+}
+
+.brand-icon .logo-dark {
+  display: none;
+}
+.brand-icon .logo-light {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  .brand-icon .logo-light {
+    display: none;
+  }
+  .brand-icon .logo-dark {
+    display: block;
+  }
 }
 
 .brand-text-stack {
@@ -190,9 +206,10 @@ body {
 }
 
 .brand-name {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
+  font-family: "Outfit", "Plus Jakarta Sans", var(--font-family);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
   color: var(--md-on-surface);
 }
 
@@ -743,9 +760,25 @@ body {
 .login-hero-logo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: inherit;
   display: block;
+}
+
+.login-hero-logo .logo-dark {
+  display: none;
+}
+.login-hero-logo .logo-light {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-hero-logo .logo-light {
+    display: none;
+  }
+  .login-hero-logo .logo-dark {
+    display: block;
+  }
 }
 
 .login-title {

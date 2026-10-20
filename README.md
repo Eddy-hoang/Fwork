@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="./assets/logo.png" alt="Fwork - Workspace & Kanban" width="460" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/icon-dark.png">
+    <img alt="Fwork Logo" src="./assets/icon-light.png" width="160">
+  </picture>
 </p>
 
 <h1 align="center">Fwork — Enterprise Real-time Kanban Collaboration Platform</h1>

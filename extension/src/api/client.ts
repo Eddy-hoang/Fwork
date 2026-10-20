@@ -1,7 +1,7 @@
 import { ApiResponse, BoardColumnResponse, BoardResponse, CreateTaskRequest, LoginRequest, LoginResponse, TaskResponse } from './types';
 
-export const DEFAULT_API_BASE = 'http://localhost:8080/api';
-export const DEFAULT_WEB_BASE = 'http://localhost:5173';
+export const DEFAULT_API_BASE = 'https://backend-8vi0.onrender.com/api';
+export const DEFAULT_WEB_BASE = 'https://fwork-web.vercel.app';
 
 export class AuthenticationError extends Error {
   constructor(message = 'Session expired or invalid credentials. Please log in again.') {
@@ -56,7 +56,7 @@ export class ApiClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -94,8 +94,8 @@ export class ApiClient {
         throw new ForbiddenError(message);
       }
       if (response.status === 400) {
-        const fieldErrors = (json?.errors && typeof json.errors === 'object') 
-          ? (json.errors as Record<string, string>) 
+        const fieldErrors = (json?.errors && typeof json.errors === 'object')
+          ? (json.errors as Record<string, string>)
           : undefined;
         throw new ValidationError(message, fieldErrors);
       }

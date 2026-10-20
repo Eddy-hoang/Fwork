@@ -82,7 +82,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoogleLogin }) 
       <header className="app-header">
         <div className="brand-badge">
           <div className="brand-icon">
-            <img src="/icons/icon32.png" alt="Fwork" />
+            <img src="/icons/icon32-light.png" alt="Fwork" className="logo-light" />
+            <img src="/icons/icon32-dark.png" alt="Fwork" className="logo-dark" />
           </div>
           <div className="brand-text-stack">
             <span className="brand-name">Fwork Companion</span>
@@ -106,7 +107,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoogleLogin }) 
         {/* Brand Hero */}
         <div className="login-hero">
           <div className="login-hero-logo">
-            <img src="/icons/icon128.png" alt="Fwork" />
+            <img src="/icons/icon128-light.png" alt="Fwork" className="logo-light" />
+            <img src="/icons/icon128-dark.png" alt="Fwork" className="logo-dark" />
           </div>
           <h1 className="login-title">Sign in to Fwork</h1>
           <p className="login-desc">Capture webpages and save them as tasks in your workspace boards.</p>
