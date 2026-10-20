@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/icon-dark.png">
-    <img alt="Fwork Logo" src="./assets/icon-light.png" width="160">
+    <img alt="Fwork Logo" src="./assets/logo.png" width="160">
   </picture>
 </p>
 
