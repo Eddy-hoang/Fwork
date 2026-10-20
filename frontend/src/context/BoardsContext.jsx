@@ -93,6 +93,25 @@ export const BoardsProvider = ({ children }) => {
     return newWs;
   }, [switchWorkspace]);
 
+  const deleteWorkspace = useCallback(
+    async (workspaceId) => {
+      await workspaceApi.remove(workspaceId);
+      setWorkspaces((prev) => {
+        const updated = prev.filter((w) => w.id !== workspaceId);
+        if (currentWorkspace?.id === workspaceId) {
+          if (updated.length > 0) {
+            switchWorkspace(updated[0]);
+          } else {
+            setCurrentWorkspace(null);
+            localStorage.removeItem("fwork_active_workspace_id");
+          }
+        }
+        return updated;
+      });
+    },
+    [currentWorkspace?.id, switchWorkspace]
+  );
+
   const create = useCallback(
     async (data) => {
       const wsId = data?.workspaceId || currentWorkspace?.id;
@@ -117,6 +136,7 @@ export const BoardsProvider = ({ children }) => {
         setCurrentWorkspace: switchWorkspace,
         switchWorkspace,
         createWorkspace,
+        deleteWorkspace,
         refreshWorkspaces,
         loading,
         refresh,

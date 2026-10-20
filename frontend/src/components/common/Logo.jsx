@@ -60,10 +60,10 @@ export default function Logo({
 
   const textColor =
     theme === "dark"
-      ? "text-slate-50"
+      ? "text-white"
       : theme === "light"
-      ? "text-slate-900"
-      : "text-ink dark:text-slate-50";
+      ? "text-black"
+      : "text-black dark:text-white";
 
   return (
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>

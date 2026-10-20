@@ -13,6 +13,7 @@ export const useWorkspace = () => {
     currentWorkspace,
     setCurrentWorkspace,
     refreshWorkspaces,
+    deleteWorkspace,
     loading: boardsLoading,
   } = useBoards();
 
@@ -112,6 +113,7 @@ export const useWorkspace = () => {
     currentWorkspace,
     setCurrentWorkspace,
     refreshWorkspaces,
+    deleteWorkspace,
     refreshMembers: fetchMembers,
     loading: loading || boardsLoading,
   };

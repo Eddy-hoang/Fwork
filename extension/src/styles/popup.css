@@ -210,7 +210,13 @@ body {
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.4px;
-  color: var(--md-on-surface);
+  color: #000000;
+}
+
+@media (prefers-color-scheme: dark) {
+  .brand-name {
+    color: #FFFFFF;
+  }
 }
 
 .brand-subtext {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Command, Zap, FolderKanban, CheckSquare, Users, Edit2, Camera } from "lucide-react";
+import { LogOut, Command, Zap, FolderKanban, CheckSquare, Users, Edit2, Camera, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { useLayout } from "../components/layout/AppLayout";
@@ -9,6 +9,7 @@ import { userApi } from "../lib/api";
 import Topbar from "../components/layout/Topbar";
 import Button from "../components/ui/Button";
 import Avatar from "../components/ui/Avatar";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import Logo from "../components/common/Logo";
 import { cn } from "../lib/utils";
 import { useLanguage } from "../context/LanguageContext";
@@ -44,7 +45,7 @@ const Card = ({ title, description, children, className }) => (
 const Settings = () => {
   const { user, logout, updateUser } = useAuth();
   const { openCreateBoard } = useLayout();
-  const { boards, tasks, members } = useWorkspace();
+  const { boards, tasks, members, currentWorkspace, deleteWorkspace } = useWorkspace();
   const navigate = useNavigate();
   const { lang, setLang, t } = useLanguage();
 
@@ -60,6 +61,29 @@ const Settings = () => {
   const [name, setName] = useState(user?.name || "");
   const [avatar, setAvatar] = useState(user?.avatar || "");
   const [saving, setSaving] = useState(false);
+
+  // Workspace deletion state
+  const [showDeleteWsModal, setShowDeleteWsModal] = useState(false);
+  const [deletingWs, setDeletingWs] = useState(false);
+
+  const isOwner =
+    currentWorkspace?.currentUserRole?.toUpperCase() === "OWNER" ||
+    currentWorkspace?.ownerId === user?.id;
+
+  const handleDeleteWorkspace = async () => {
+    if (!currentWorkspace?.id) return;
+    setDeletingWs(true);
+    try {
+      await deleteWorkspace(currentWorkspace.id);
+      toast.success(t("Workspace deleted successfully") || "Workspace deleted");
+      setShowDeleteWsModal(false);
+      navigate("/dashboard");
+    } catch (err) {
+      toast.error(err?.message || "Failed to delete workspace");
+    } finally {
+      setDeletingWs(false);
+    }
+  };
 
   // Preset avatars from Dicebear adventurer style
   const presets = [
@@ -213,12 +237,58 @@ const Settings = () => {
           </Card>
 
           {/* Workspace */}
-          <Card title={t("Workspace")} description={t("WorkspaceDesc")}>
+          <Card
+            title={t("Workspace")}
+            description={
+              currentWorkspace?.name
+                ? `${t("WorkspaceDesc")} • ${currentWorkspace.name}`
+                : t("WorkspaceDesc")
+            }
+          >
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-line">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300 font-bold font-display text-base border border-brand-100 dark:border-brand-300/20">
+                  {currentWorkspace?.name?.[0]?.toUpperCase() || "W"}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm text-ink">{currentWorkspace?.name || "Workspace"}</h4>
+                  <p className="text-xs text-muted flex items-center gap-1.5 mt-0.5">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-2 text-ink capitalize">
+                      {currentWorkspace?.currentUserRole?.toLowerCase() || "member"}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-3 gap-3">
               <Metric icon={FolderKanban} label={t("Boards")} value={boards.length} tint="var(--color-brand-600)" />
               <Metric icon={CheckSquare} label={t("Tasks")} value={tasks.length} tint="var(--color-priority-low)" />
               <Metric icon={Users} label={t("People")} value={members.length} tint="var(--color-brand-500)" />
             </div>
+
+            {/* Danger Zone: Delete Workspace for Owner */}
+            {isOwner && (
+              <div className="mt-5 pt-4 border-t border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-red-50/50 dark:bg-red-950/20 p-3.5 rounded-2xl border border-red-200/60 dark:border-red-900/40">
+                <div>
+                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Xóa Workspace này (Delete Workspace)</span>
+                  </p>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    Lưu trữ workspace và toàn bộ các bảng, công việc bên trong.
+                  </p>
+                </div>
+                <Button
+                  variant="danger"
+                  onClick={() => setShowDeleteWsModal(true)}
+                  className="text-xs h-8 px-3.5 shrink-0"
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                  Xóa Workspace
+                </Button>
+              </div>
+            )}
           </Card>
 
           {/* Preferences */}
@@ -282,6 +352,18 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteWsModal}
+        onClose={() => setShowDeleteWsModal(false)}
+        onConfirm={handleDeleteWorkspace}
+        title={`Xóa workspace "${currentWorkspace?.name}"?`}
+        description="Bạn có chắc chắn muốn xóa workspace này? Tất cả các bảng, danh sách và công việc liên quan sẽ bị lưu trữ. Hành động này không thể hoàn tác."
+        confirmLabel="Xóa vĩnh viễn"
+        cancelLabel="Hủy"
+        danger
+        loading={deletingWs}
+      />
     </>
   );
 };

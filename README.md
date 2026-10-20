@@ -368,6 +368,27 @@ npm install
 npm run dev
 ```
 
+#### 4. Cài đặt tiện ích Fwork Companion (Chrome Extension):
+
+Cài đặt tiện ích trực tiếp vào các trình duyệt nhân Chromium (Google Chrome, Microsoft Edge, Brave, Cốc Cốc):
+
+- **Cách 1: Nạp từ thư mục dist có sẵn (Nhanh nhất)**:
+  1. Mở trình duyệt, truy cập `chrome://extensions/`
+  2. Bật **Developer mode** (Chế độ cho nhà phát triển) ở góc trên bên phải.
+  3. Bấm **Load unpacked** (Tải tiện ích đã giải nén) ➔ Chọn thư mục `extension/dist`.
+
+- **Cách 2: Đóng gói và cài đặt từ file Zip**:
+  1. Build & đóng gói file nén:
+     ```bash
+     cd extension
+     npm install
+     npm run pack
+     ```
+  2. File zip hoàn chỉnh sẽ nằm tại `extension/fwork-companion.zip`.
+  3. Giải nén file zip và nạp vào trình duyệt bằng nút **Load unpacked** tại `chrome://extensions/`.
+
+> 💡 **Cấu hình Server:** Mặc định extension kết nối tới Cloud (Render Backend & Vercel Web). Để trỏ về Localhost khi phát triển, mở popup extension ➔ bấm icon **Bánh răng (⚙️)** và nhập `http://localhost:8080/api`.
+
 ---
 
 ## API Documentation & Swagger
