@@ -1,14 +1,34 @@
-#  Fwork — Enterprise Real-time Kanban Collaboration Platform
+<p align="center">
+  <img src="./assets/logo.png" alt="Fwork - Workspace & Kanban" width="460" />
+</p>
 
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](./PROJECT_REPORT.md)
-[![Java Version](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-green.svg)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-19.2-blue.svg)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-8.0-purple.svg)](https://vitejs.dev/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7-red.svg)](https://redis.io/)
+<h1 align="center">Fwork — Enterprise Real-time Kanban Collaboration Platform</h1>
 
-**Fwork** là hệ thống Kanban cộng tác thời gian thực cho doanh nghiệp, xây dựng trên kiến trúc **Spring Boot 4.1 + Java 21** và **React 19 + Vite 8**. Hệ thống tập trung giải quyết các bài toán cốt lõi: đồng bộ dữ liệu tức thì không trễ (STOMP WebSocket), kiểm soát phân quyền chặt chẽ (RBAC), tối ưu truy vấn cơ sở dữ liệu (chống N+1, hai tầng cache Redis), chịu tải bằng thuật toán Sliding Window Rate Limiting và hỗ trợ tự động hóa luồng việc với Google Gemini AI.
+<p align="center">
+  <strong>Nền tảng quản lý công việc và Kanban cộng tác thời gian thực cho doanh nghiệp</strong>
+</p>
+
+<p align="center">
+  <a href="./PROJECT_REPORT.md"><img src="https://img.shields.io/badge/Build-Passing-brightgreen.svg" alt="Build Status" /></a>
+  <a href="https://openjdk.org/projects/jdk/21/"><img src="https://img.shields.io/badge/Java-21-orange.svg" alt="Java Version" /></a>
+  <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-4.1.0-green.svg" alt="Spring Boot" /></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19.2-blue.svg" alt="React" /></a>
+  <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-8.0-purple.svg" alt="Vite" /></a>
+  <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-16-blue.svg" alt="PostgreSQL" /></a>
+  <a href="https://redis.io/"><img src="https://img.shields.io/badge/Redis-7-red.svg" alt="Redis" /></a>
+</p>
+
+---
+
+## 📌 Giới thiệu dự án (Project Overview)
+
+**Fwork** là hệ sinh thái quản lý công việc và Kanban cộng tác thời gian thực chuẩn doanh nghiệp, được xây dựng trên nền tảng **Spring Boot 4.1 + Java 21** và **React 19 + Vite 8**. Dự án giải quyết trọn vẹn luồng cộng tác hiện đại từ web đến trình duyệt:
+
+- **Hệ thống Kanban đa tầng**: Quản lý theo cấu trúc `Workspace` ➔ `Board` ➔ `Column` ➔ `Task`, kéo thả mượt mà với `@dnd-kit`, tự động chuyển trạng thái khi hoàn tất.
+- **Đồng bộ thời gian thực (Zero-latency Real-time)**: Kiến trúc STOMP WebSocket broker cập nhật mọi thay đổi bảng tức thì cho tất cả thành viên mà không cần tải lại trang.
+- **Trợ lý AI thông minh**: Tích hợp Google Gemini AI hỗ trợ tự động phân rã đầu việc lớn (`AI Breakdown`) và sinh nhanh danh sách nhiệm vụ từ mô tả mục tiêu.
+- **Fwork Companion (Chrome Extension)**: Tiện ích mở rộng (Manifest V3) cho phép người dùng lưu nhanh trang web thành task kèm Google Sign-In và chọn board/cột đích.
+- **Kiến trúc chịu tải & Bảo mật**: Phân quyền ma trận chặt chẽ (RBAC), chống N+1 queries với JPA Dynamic `@EntityGraph`, 2 tầng cache Redis và cơ chế giới hạn tải phân tán Sliding Window.
 
 ---
 
@@ -259,6 +279,9 @@ Fwork/
 │   │   ├── pages/                   # Dashboard, Kanban Board, Settings, Login
 │   │   └── index.css                # Material Design 3 Design Tokens
 │   ├── index.html                   # HTML Entry
+├── extension/                       # Fwork Companion Chrome Extension (Manifest V3)
+│   ├── public/                      # Manifest, icons & background scripts
+│   ├── src/                         # Popup UI (Vite + React 19 + TypeScript)
 │   └── package.json
 ├── docker-compose.yml               # Multi-container orchestration (DB, Redis, App)
 └── README.md
