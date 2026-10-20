@@ -103,7 +103,7 @@ public class SecurityConfig {
         return new CorsFilter(corsConfigurationSource());
     }
 
-    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,https://fwork-web.vercel.app,https://*.vercel.app}")
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,https://fwork-web.vercel.app,https://*.vercel.app,chrome-extension://*}")
     private String allowedOrigins;
 
     @Bean
@@ -115,7 +115,7 @@ public class SecurityConfig {
                 .toList();
 
         if (origins.isEmpty()) {
-            origins = List.of("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "https://fwork-web.vercel.app", "https://*.vercel.app");
+            origins = List.of("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "https://fwork-web.vercel.app", "https://*.vercel.app", "chrome-extension://*");
         }
 
         configuration.setAllowedOriginPatterns(origins);
