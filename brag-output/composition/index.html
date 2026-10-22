@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Fwork — Productivity Launch Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #090a0f;
+        font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+        color: #f8fafc;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #090a0f;
+      }
+
+      /* Base clip container */
+      .clip.scene {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1920px;
+        height: 1080px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #090a0f;
+      }
+
+      /* Global Brand Elements */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 18px;
+        border-radius: 9999px;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .badge-violet {
+        background: rgba(99, 102, 241, 0.15);
+        color: #c7d2fe;
+        border: 1px solid rgba(99, 102, 241, 0.35);
+      }
+      .badge-dark {
+        background: rgba(255, 255, 255, 0.06);
+        color: #cbd5e1;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .badge-green {
+        background: rgba(16, 185, 129, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+      }
+      .badge-urgent {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.35);
+      }
+
+      /* Floating Browser Frame for Real Screenshots */
+      .browser-frame {
+        background: #12141c;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 32px 80px -16px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .browser-header-bar {
+        background: #161924;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .browser-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .browser-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .browser-address {
+        flex: 1;
+        background: #0d0f17;
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #94a3b8;
+        font-family: "JetBrains Mono", monospace;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .browser-screenshot {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+      }
+
+      /* Gradient Text */
+      .text-gradient {
+        background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      /* -------------------------------------------------------------
+         SCENE 1: THE MANUAL CHAOS (Dark, cluttered, tension)
+      ------------------------------------------------------------- */
+      #scene1 {
+        background: #0c0a14;
+        color: #ffffff;
+      }
+      .chaos-container {
+        position: relative;
+        width: 1600px;
+        height: 800px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+      }
+      .chaos-cards {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      .chaos-item {
+        position: absolute;
+        background: #181524;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 16px 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        font-size: 14px;
+        color: #e2e8f0;
+      }
+      .card-spreadsheet {
+        top: 60px;
+        left: 60px;
+        width: 360px;
+        transform: rotate(-5deg);
+      }
+      .card-tabs {
+        top: 80px;
+        right: 80px;
+        width: 380px;
+        transform: rotate(4deg);
+      }
+      .card-alert {
+        bottom: 80px;
+        left: 120px;
+        width: 340px;
+        border-color: rgba(225, 29, 72, 0.4);
+        background: #1f121d;
+        transform: rotate(3deg);
+      }
+      .card-chat {
+        bottom: 100px;
+        right: 140px;
+        width: 350px;
+        transform: rotate(-3deg);
+      }
+      .laser-sweep {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(147, 115, 238, 0.35), #ffffff, transparent);
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      /* -------------------------------------------------------------
+         SCENE 2: THE SHIFT (Deep Dark Platform Reveal)
+      ------------------------------------------------------------- */
+      #scene2 {
+        background: radial-gradient(ellipse at 50% 25%, rgba(99, 102, 241, 0.16) 0%, #090a0f 70%);
+      }
+      .scene2-layout {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+        width: 1600px;
+      }
+      .scene2-headline-box {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .pills-row {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+      }
+      .feature-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        background: #12141c;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 9999px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #e2e8f0;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      }
+
+      /* -------------------------------------------------------------
+         SCENE 3: WORKFLOW 1 (Chrome Extension Web Capture)
+      ------------------------------------------------------------- */
+      #scene3 {
+        background: #090a0f;
+      }
+      .workflow-wrapper {
+        width: 1560px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      .workflow-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .split-stage {
+        display: flex;
+        gap: 36px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .extension-card {
+        width: 380px;
+        border-radius: 22px;
+        box-shadow: 0 28px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(99, 102, 241, 0.4);
+        overflow: hidden;
+        background: #12141c;
+        display: flex;
+        flex-direction: column;
+      }
+      .ext-chrome-bar {
+        background: #181b26;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 14px;
+        padding: 14px 20px;
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+      }
+
+      /* -------------------------------------------------------------
+         SCENE 4: WORKFLOW 2 (Gemini AI Sprint Breakdown)
+      ------------------------------------------------------------- */
+      #scene4 {
+        background: #090a0f;
+      }
+      .ai-stage {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+        width: 1560px;
+        align-items: center;
+      }
+      .ai-modal {
+        background: #12141c;
+        border-radius: 24px;
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        padding: 36px 44px;
+        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.85), 0 0 40px rgba(99, 102, 241, 0.15);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .checklist-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 18px;
+        background: #181b26;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 15px;
+        font-weight: 600;
+        color: #f8fafc;
+      }
+
+      /* -------------------------------------------------------------
+         SCENE 5: WORKFLOW 3 (Real Kanban & Sub-10ms Sync)
+      ------------------------------------------------------------- */
+      #scene5 {
+        background: #090a0f;
+      }
+      .scene5-stage {
+        width: 1560px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .avatars-team {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .avatar-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: #12141c;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #e2e8f0;
+      }
+
+      /* -------------------------------------------------------------
+         SCENE 6: OUTRO (100% Velocity & Launch CTA)
+      ------------------------------------------------------------- */
+      #scene6 {
+        background: radial-gradient(ellipse at 50% 30%, rgba(99, 102, 241, 0.18) 0%, #090a0f 75%);
+        text-align: center;
+      }
+      .outro-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 26px;
+      }
+      .links-pills {
+        display: flex;
+        gap: 16px;
+        margin-top: 10px;
+      }
+      .link-badge {
+        background: #12141c;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 10px 22px;
+        border-radius: 9999px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #c7d2fe;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="22"
+      data-width="1920"
+      data-height="1080"
+    >
+      <audio
+        id="bgm"
+        data-start="0"
+        data-duration="22"
+        data-volume="0.85"
+        data-fade-in="0.8"
+        data-fade-out="1.0"
+        src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"
+      ></audio>
+
+      <!-- SCENE 1: THE MANUAL CHAOS (0.00s - 3.82s) -->
+      <div id="scene1" class="clip scene" data-start="0" data-duration="3.82">
+        <div class="laser-sweep" id="laserSweep" data-layout-allow-overflow></div>
+        <div class="chaos-cards" data-layout-allow-overlap>
+          <div class="chaos-item card-spreadsheet" id="chaosSpreadsheet" data-layout-allow-overlap>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:700; color:#cbd5e1;">
+              <span>Sprint_Backlog_v7_FINAL.xlsx</span>
+              <span style="color:#ef4444;">#REF! ERROR</span>
+            </div>
+            <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#94a3b8; line-height:1.6;">
+              Row 142: Task Auth Matrix (Unassigned)<br />
+              Row 143: Fix Sync Conflict (Pending)<br />
+              Row 144: Manual Copy/Paste Link...
+            </div>
+          </div>
+
+          <div class="chaos-item card-tabs" id="chaosTabs" data-layout-allow-overlap>
+            <div style="font-weight:700; margin-bottom:6px; color:#f87171;">Chrome — 47 Tabs Open</div>
+            <div style="font-size:12px; color:#94a3b8; line-height:1.6;">
+              • JIRA Ticket #4029<br />
+              • Slack #general (99+ unread)<br />
+              • Google Sheets: Team Roadmap 2026<br />
+              • Notion: Architecture Scratchpad
+            </div>
+          </div>
+
+          <div class="chaos-item card-alert" id="chaosAlert" data-layout-allow-overlap>
+            <div style="font-weight:700; color:#f43f5e; margin-bottom:4px;">⚠️ STALE BOARD WARNING</div>
+            <div style="font-size:12px; color:#fca5a5;">Card status modified 4 hours ago. Reload page to see changes.</div>
+          </div>
+
+          <div class="chaos-item card-chat" id="chaosChat" data-layout-allow-overlap data-layout-allow-occlusion>
+            <div style="font-weight:700; color:#a78bfa; margin-bottom:4px;">Slack Direct Message</div>
+            <div style="font-size:12px; color:#cbd5e1;">"Hey, did you update ticket #204? The spreadsheet shows it's still In Progress..."</div>
+          </div>
+        </div>
+
+        <div class="chaos-container">
+          <div class="badge badge-dark" id="s1Eyebrow" style="margin-bottom:24px;">THE CONTEXT-SWITCHING TAX</div>
+          <h1
+            id="s1Title"
+            style="font-size: 68px; font-weight: 800; text-align: center; max-width: 1280px; line-height: 1.15; margin-bottom: 24px; letter-spacing: -0.02em;"
+          >
+            Still copy-pasting tasks across <span style="color:#f87171;">47 browser tabs</span>?
+          </h1>
+          <p id="s1Sub" style="font-size: 26px; color: #94a3b8; font-weight: 500; text-align: center;">
+            Work shouldn't feel like wrestling with disconnected tools.
+          </p>
+        </div>
+      </div>
+
+      <!-- SCENE 2: THE SHIFT / REAL DARK BOARD REVEAL (3.82s - 7.09s) -->
+      <div id="scene2" class="clip scene" data-start="3.82" data-duration="3.27">
+        <div class="scene2-layout" id="s2Container">
+          <div class="scene2-headline-box">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+              <img src="assets/icon-dark.png" alt="Fwork" style="width:40px; height:40px; border-radius:10px;" />
+              <div class="badge badge-violet">ENTERPRISE PLATFORM REVEAL</div>
+            </div>
+            <h1 style="font-size: 52px; font-weight: 800; letter-spacing: -0.02em; color:#ffffff;">
+              Instant Automation for <span class="text-gradient">High-Velocity Teams</span>
+            </h1>
+          </div>
+
+          <!-- Real Fwork Dark Kanban Board Screenshot in Floating Browser Frame -->
+          <div class="browser-frame" id="s2BrowserFrame" style="width: 1240px; height: 600px;">
+            <div class="browser-header-bar">
+              <div class="browser-dots">
+                <div class="browser-dot"></div>
+                <div class="browser-dot"></div>
+                <div class="browser-dot"></div>
+              </div>
+              <div class="browser-address">https://fwork-web.vercel.app/boards/tu-hoc</div>
+              <span class="badge badge-green" style="font-size:11px; padding:3px 10px;">🟢 Live Production • Dark Mode</span>
+            </div>
+            <img
+              src="assets/screenshots/kanban-board-dark.png"
+              alt="Fwork Dark Mode Board"
+              class="browser-screenshot"
+              data-layout-allow-overflow
+              style="width: 1240px; height: 552px; object-fit: cover; object-position: top center;"
+            />
+          </div>
+
+          <!-- Architecture Metric Pills -->
+          <div class="pills-row">
+            <div class="feature-pill" id="s2Pill1">⚡ Sub-10ms WebSocket STOMP Sync</div>
+            <div class="feature-pill" id="s2Pill2">🤖 Gemini 2.0 AI Sprint Breakdown</div>
+            <div class="feature-pill" id="s2Pill3">🧩 Chrome Companion Extension</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 3: WORKFLOW 1 (Chrome Extension Web Capture) (7.09s - 10.93s) -->
+      <div id="scene3" class="clip scene" data-start="7.09" data-duration="3.84">
+        <div class="workflow-wrapper">
+          <div class="workflow-header">
+            <div>
+              <div class="badge badge-violet" style="margin-bottom:8px;">WORKFLOW 01</div>
+              <h2 style="font-size: 38px; font-weight: 800; color:#ffffff;">
+                1-Click Browser Web Capture <span style="font-weight:400; color:#94a3b8;">— From web research to board instantly</span>
+              </h2>
+            </div>
+            <div class="badge badge-green">Zero Tab Switching</div>
+          </div>
+
+          <div class="split-stage">
+            <div class="browser-frame" id="s3Browser" style="width: 1120px; height: 580px;">
+              <div class="browser-header-bar">
+                <div class="browser-dots">
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                </div>
+                <div class="browser-address">https://www.youtube.com/watch?v=sMQONbNZ04I</div>
+                <span class="badge" style="background:rgba(239,68,68,0.15); color:#fca5a5; border:1px solid rgba(239,68,68,0.3); font-size:11px; padding:3px 10px;">🔴 YouTube Research</span>
+              </div>
+              <div style="padding: 32px 36px; display: flex; flex-direction: column; gap: 20px; background: #12141c; flex: 1;">
+                <div style="display:flex; align-items:center; gap: 14px;">
+                  <div style="width:48px; height:48px; border-radius:12px; background:#dc2626; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:22px; font-weight:900;">▶</div>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 700; color: #f87171; text-transform: uppercase; letter-spacing: 0.05em;">AI Productivity Video</div>
+                    <div style="font-size: 23px; font-weight: 800; color:#ffffff; line-height: 1.25;">
+                      (11) 6 công cụ AI MIỄN PHÍ giúp bạn tạo dịch vụ kiếm ngàn đô...
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Video Preview Card -->
+                <div style="background: #181b26; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 22px 26px; color: #ffffff; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 12px 24px -6px rgba(0,0,0,0.4);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 14px; font-weight: 700; color: #38bdf8;">Channel: Under30 — YouTube</span>
+                    <span class="badge" style="background:rgba(255,255,255,0.1); color:#ffffff; font-size:11px;">1080p HD</span>
+                  </div>
+                  <p style="font-size: 14px; color: #94a3b8; line-height: 1.5;">
+                    Hướng dẫn thực chiến 6 công cụ AI giúp tự động hóa quy trình làm việc, gom nhặt thông tin và phân rã task thông minh từ video sang Kanban.
+                  </p>
+                  <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <span class="badge" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8; font-size:11px;">#AI Automation</span>
+                    <span class="badge" style="background:rgba(167, 139, 250, 0.15); color:#c4b5fd; font-size:11px;">#Productivity</span>
+                    <span class="badge" style="background:rgba(74, 222, 128, 0.15); color:#4ade80; font-size:11px;">#Workspace Sync</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 13px; color: #94a3b8;">
+                  <span>Destination: <strong style="color:#ffffff;">Nghĩa Hoàng Đình's Workspace</strong></span>
+                  <span style="font-weight: 700; color: #a5b4fc;">Board: TỰ HỌC ➔ Column: youtuber</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Real Fwork Companion Extension Screenshot -->
+            <div class="extension-card" id="s3Popup" style="position: relative; height: 580px;">
+              <div class="ext-chrome-bar">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 14px;">🧩</span>
+                  <span style="font-size: 13px; font-weight: 700; color: #f1eff8;">Fwork Companion</span>
+                </div>
+                <span class="badge badge-green" style="font-size: 11px; padding: 2px 8px;">Manifest V3</span>
+              </div>
+              <div style="position: relative; overflow: hidden; height: 536px;" data-layout-allow-overlap>
+                <img
+                  src="assets/screenshots/extension-capture.png"
+                  alt="Fwork Companion Extension Screenshot"
+                  style="width: 380px; height: 536px; object-fit: cover; object-position: top center; display: block;"
+                />
+                <!-- Animated Mouse Pointer Click -->
+                <div id="s3Cursor" data-layout-allow-overlap style="position: absolute; bottom: 34px; left: 50%; width: 28px; height: 28px; pointer-events: none; transform: translate(-50%, 0); z-index: 5;">
+                  <svg viewBox="0 0 24 24" fill="none" style="width: 28px; height: 28px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));">
+                    <path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.86a.5.5 0 0 0-.85.35Z" fill="#ffffff" stroke="#1a1726" stroke-width="1.5"/>
+                  </svg>
+                </div>
+                <!-- Animated Click Ripple -->
+                <div id="s3ClickRipple" data-layout-allow-overlap style="position: absolute; bottom: 28px; left: 50%; width: 50px; height: 50px; border-radius: 50%; background: rgba(167, 139, 250, 0.65); transform: translate(-50%, -50%) scale(0); pointer-events: none;"></div>
+                <!-- Animated Success Badge -->
+                <div id="s3SuccessBadge" data-layout-allow-overlap style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); opacity: 0; white-space: nowrap; background: #065f46; color: #d1fae5; border: 1px solid #34d399; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; box-shadow: 0 8px 18px rgba(0,0,0,0.4); z-index: 10;">
+                  ✓ Dispatched to Board "TỰ HỌC" in 42ms
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 4: WORKFLOW 2 (Gemini AI Sprint Breakdown) (10.93s - 14.73s) -->
+      <div id="scene4" class="clip scene" data-start="10.93" data-duration="3.80">
+        <div class="workflow-wrapper">
+          <div class="workflow-header">
+            <div>
+              <div class="badge badge-violet" style="margin-bottom:8px;">WORKFLOW 02</div>
+              <h2 style="font-size: 38px; font-weight: 800; color:#ffffff;">
+                Gemini 2.0 AI Sprint Breakdown <span style="font-weight:400; color:#94a3b8;">— Ambiguity to structured backlog in 1.2s</span>
+              </h2>
+            </div>
+            <div class="badge badge-violet">Spring AI Engine</div>
+          </div>
+
+          <div class="ai-stage">
+            <!-- Left: Real Screenshot of Boards & AI Banner in Dark Frame -->
+            <div class="browser-frame" id="s4BoardsFrame" style="height: 480px;">
+              <div class="browser-header-bar">
+                <div class="browser-dots">
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                </div>
+                <div class="browser-address">https://fwork-web.vercel.app/boards/tu-hoc</div>
+                <span class="badge badge-violet" style="font-size:11px; padding:3px 10px;">✨ AI Tasks Active</span>
+              </div>
+              <img
+                src="assets/screenshots/kanban-board-dark.png"
+                alt="Fwork Boards & AI Engine"
+                class="browser-screenshot"
+                data-layout-allow-overflow
+                style="width: 100%; height: 432px; object-fit: cover; object-position: top center;"
+              />
+            </div>
+
+            <!-- Right: AI Breakdown Modal with Real Engineering Subtasks -->
+            <div class="ai-modal" id="s4Modal">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <span class="badge badge-urgent" style="margin-bottom:8px;">HIGH PRIORITY</span>
+                  <h3 style="font-size: 22px; font-weight: 800; color:#ffffff;">
+                    Epic: Enterprise Authentication Matrix
+                  </h3>
+                </div>
+                <button
+                  id="s4AiBtn"
+                  class="btn-primary"
+                  style="padding:10px 18px; font-size:13px; background:linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"
+                >
+                  <span>✨ AI Breakdown</span>
+                </button>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:10px;" id="s4Checklist">
+                <div class="checklist-item" id="s4Item1">
+                  <span>1. How to Build Circuit Breaker in Spring Boot</span>
+                  <span class="badge badge-urgent">Urgent • @eddy</span>
+                </div>
+                <div class="checklist-item" id="s4Item2">
+                  <span>2. Subnet Routers &amp; STOMP WebSocket Auth</span>
+                  <span class="badge" style="background:rgba(245,158,11,0.15); color:#fcd34d; border:1px solid rgba(245,158,11,0.3);">High • @nghia</span>
+                </div>
+                <div class="checklist-item" id="s4Item3">
+                  <span>3. Develop AI Agents Using LangGraph</span>
+                  <span class="badge badge-violet">Medium • @team</span>
+                </div>
+                <div class="checklist-item" id="s4Item4">
+                  <span>4. Hierarchical RBAC: OWNER / ADMIN Matrix</span>
+                  <span class="badge badge-green">Ready • @dev</span>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:13px; color:#94a3b8;">
+                <span>AI Engine: Gemini 2.0 Flash</span>
+                <span style="font-family:'JetBrains Mono', monospace; font-weight:700; color:#818cf8;">Generated 4 structured tasks &amp; checklist in 1.2s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 5: WORKFLOW 3 (Real Dark Kanban & Sub-10ms Sync) (14.73s - 18.56s) -->
+      <div id="scene5" class="clip scene" data-start="14.73" data-duration="3.83">
+        <div class="scene5-stage">
+          <div class="workflow-header">
+            <div>
+              <div class="badge badge-violet" style="margin-bottom:8px;">WORKFLOW 03</div>
+              <h2 style="font-size: 38px; font-weight: 800; color:#ffffff;">
+                Sub-10ms Real-Time Kanban <span style="font-weight:400; color:#94a3b8;">— Multi-user STOMP sync with zero page refresh</span>
+              </h2>
+            </div>
+            <div class="avatars-team">
+              <div class="badge badge-green" id="s5StompBadge">🟢 WebSocket STOMP: 4ms</div>
+              <div class="avatar-badge">
+                <span style="width:24px; height:24px; border-radius:50%; background:#4338ca; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">N</span>
+                <span>Nghĩa (Owner)</span>
+              </div>
+              <div class="avatar-badge">
+                <span style="width:24px; height:24px; border-radius:50%; background:#065f46; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">E</span>
+                <span>Eddy (Member)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Real Screenshot of TỰ HỌC Dark Kanban Board with STOMP Sync -->
+          <div class="browser-frame" id="s5TasksFrame" style="height: 520px; position: relative;">
+            <div class="browser-header-bar">
+              <div class="browser-dots">
+                <div class="browser-dot"></div>
+                <div class="browser-dot"></div>
+                <div class="browser-dot"></div>
+              </div>
+              <div class="browser-address">https://fwork-web.vercel.app/boards/tu-hoc</div>
+              <span class="badge badge-green" style="font-size:11px; padding:3px 10px;">⚡ 13 Tasks Live Synced (4ms)</span>
+            </div>
+            <div style="position: relative; overflow: hidden; height: 472px;" data-layout-allow-overlap>
+              <img
+                src="assets/screenshots/kanban-board-dark.png"
+                alt="Fwork TỰ HỌC Dark Kanban Board"
+                class="browser-screenshot"
+                data-layout-allow-overflow
+                style="width: 100%; height: 472px; object-fit: cover; object-position: top center; display: block;"
+              />
+              <!-- Highlight on the live-synced task column -->
+              <div id="s5TaskHighlight" data-layout-allow-overlap style="position: absolute; left: 215px; top: 110px; width: 285px; height: 350px; border: 2px solid #818cf8; border-radius: 14px; background: rgba(99, 102, 241, 0.12); pointer-events: none; opacity: 0; box-shadow: 0 0 28px rgba(99, 102, 241, 0.45);">
+                <div style="position: absolute; top: -14px; left: 10px; background: #4338ca; color: #ffffff; padding: 3px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                  <span style="width: 6px; height: 6px; border-radius: 50%; background: #34d399;"></span>
+                  <span>DELIVERED VIA STOMP (4ms)</span>
+                </div>
+              </div>
+              <!-- Floating STOMP live confirmation pill -->
+              <div id="s5LivePill" class="badge badge-violet" data-layout-allow-overlap style="position: absolute; right: 24px; bottom: 18px; font-size: 13px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7); border: 1px solid #6366f1; opacity: 0;">
+                ⚡ Zero Page Reload: YouTube Task Arrived in "youtuber" Column
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 6: OUTRO / 100% VELOCITY (18.56s - 22.00s) -->
+      <div id="scene6" class="clip scene" data-start="18.56" data-duration="3.44">
+        <div class="outro-box" id="s6Box">
+          <img src="assets/logo.png" alt="Fwork Logo" style="width: 480px; height: auto;" />
+          <div style="font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;">
+            <span style="color: #64748b; text-decoration: line-through;">Manual Chaos &amp; Out-of-sync Backlogs</span>
+            &nbsp;➔&nbsp;
+            <span style="color: #818cf8;">Instant Real-Time Automation</span>
+          </div>
+          <h1 style="font-size: 58px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff;">
+            Zero polling. Zero manual chaos. <span class="text-gradient">100% velocity.</span>
+          </h1>
+          <div class="links-pills">
+            <div class="link-badge">🌐 fwork-web.vercel.app</div>
+            <div class="link-badge">🧩 Chrome Web Store (Manifest V3)</div>
+            <div class="link-badge">⚡ Spring Boot 4.1 + React 19</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // -------------------------------------------------------------
+      // SCENE 1 ANIMATIONS (0.00s - 3.82s)
+      // -------------------------------------------------------------
+      tl.fromTo("#s1Eyebrow", { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.2);
+      tl.fromTo("#s1Title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.4);
+      tl.fromTo("#s1Sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 0.7);
+
+      // Cluttered cards drift in
+      tl.fromTo("#chaosSpreadsheet", { opacity: 0, scale: 0.85, x: -40 }, { opacity: 1, scale: 1, x: 0, duration: 0.8, ease: "back.out(1.2)" }, 0.6);
+      tl.fromTo("#chaosTabs", { opacity: 0, scale: 0.85, x: 40 }, { opacity: 1, scale: 1, x: 0, duration: 0.8, ease: "back.out(1.2)" }, 0.8);
+      tl.fromTo("#chaosAlert", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 1.0);
+      tl.fromTo("#chaosChat", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 1.2);
+
+      // Laser sweep wipes chaos away
+      tl.fromTo("#laserSweep", { x: "-100%" }, { x: "100%", duration: 0.9, ease: "power2.inOut" }, 3.0);
+      tl.to(["#chaosSpreadsheet", "#chaosTabs", "#chaosAlert", "#chaosChat", "#s1Title", "#s1Sub", "#s1Eyebrow"], {
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.4,
+        ease: "power2.in"
+      }, 3.3);
+
+      // -------------------------------------------------------------
+      // SCENE 2 ANIMATIONS (3.82s - 7.09s) // beat-locked: 3.82s
+      // -------------------------------------------------------------
+      tl.fromTo("#s2Container", { opacity: 0, scale: 0.92, y: 40 }, { opacity: 1, scale: 1, y: 0, duration: 0.8, ease: "power3.out" }, 3.82);
+      // Subtle float zoom on real dashboard screenshot
+      tl.fromTo("#s2BrowserFrame", { scale: 0.95, y: 20 }, { scale: 1, y: 0, duration: 1.2, ease: "power2.out" }, 3.9);
+
+      // Sequential feature pills
+      tl.fromTo("#s2Pill1", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.4)" }, 4.6);
+      tl.fromTo("#s2Pill2", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.4)" }, 5.1);
+      tl.fromTo("#s2Pill3", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.4)" }, 5.6);
+      tl.to("#s2Container", { opacity: 0, scale: 0.95, y: -30, duration: 0.5, ease: "power2.in" }, 6.6);
+
+      // -------------------------------------------------------------
+      // SCENE 3 ANIMATIONS (7.09s - 10.93s) // beat-locked: 7.09s
+      // -------------------------------------------------------------
+      tl.fromTo("#s3Browser", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" }, 7.15);
+      tl.fromTo("#s3Popup", { opacity: 0, x: 60, scale: 0.9 }, { opacity: 1, x: 0, scale: 1, duration: 0.7, ease: "back.out(1.2)" }, 7.4);
+
+      // Cursor moves in from bottom-right over "Add to Fwork" button
+      tl.fromTo("#s3Cursor", { opacity: 0, x: 40, y: 30 }, { opacity: 1, x: 0, y: 0, duration: 0.7, ease: "power2.out" }, 8.3);
+      // Mouse click press
+      tl.to("#s3Cursor", { scale: 0.82, duration: 0.12, ease: "power1.in" }, 9.2);
+      tl.to("#s3Cursor", { scale: 1, duration: 0.15 }, 9.32);
+      // Ripple pulses from the button
+      tl.fromTo("#s3ClickRipple", { scale: 0, opacity: 0.9 }, { scale: 2.2, opacity: 0, duration: 0.5, ease: "power2.out" }, 9.25);
+      // Success toast appears
+      tl.fromTo("#s3SuccessBadge", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.5)" }, 9.38);
+      tl.to(["#s3Browser", "#s3Popup"], { opacity: 0, y: -30, duration: 0.4, ease: "power2.in" }, 10.5);
+
+      // -------------------------------------------------------------
+      // SCENE 4 ANIMATIONS (10.93s - 14.73s) // beat-locked: 10.93s
+      // -------------------------------------------------------------
+      tl.fromTo("#s4BoardsFrame", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" }, 11.0);
+      tl.fromTo("#s4Modal", { opacity: 0, x: 40, scale: 0.95 }, { opacity: 1, x: 0, scale: 1, duration: 0.7, ease: "power3.out" }, 11.2);
+      tl.to("#s4AiBtn", { scale: 0.92, duration: 0.15 }, 11.8);
+      tl.to("#s4AiBtn", { scale: 1.05, duration: 0.2 }, 11.95);
+      tl.to("#s4AiBtn", { scale: 1, duration: 0.2 }, 12.15);
+
+      // Subtasks cascade in
+      tl.fromTo("#s4Item1", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 12.2);
+      tl.fromTo("#s4Item2", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 12.5);
+      tl.fromTo("#s4Item3", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 12.8);
+      tl.fromTo("#s4Item4", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 13.1);
+      tl.to(["#s4BoardsFrame", "#s4Modal"], { opacity: 0, scale: 0.95, y: -30, duration: 0.4, ease: "power2.in" }, 14.3);
+
+      // -------------------------------------------------------------
+      // SCENE 5 ANIMATIONS (14.73s - 18.56s) // beat-locked: 14.73s
+      // -------------------------------------------------------------
+      tl.fromTo(".scene5-stage", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 14.8);
+      tl.fromTo("#s5StompBadge", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" }, 15.1);
+      // Gentle camera zoom on real TỰ HỌC Kanban board
+      tl.fromTo("#s5TasksFrame", { scale: 0.96 }, { scale: 1.02, duration: 2.8, ease: "sine.inOut" }, 15.0);
+      // Highlight the live delivered card in youtuber column
+      tl.to("#s5TaskHighlight", { opacity: 1, duration: 0.4, ease: "power2.out" }, 15.5);
+      tl.fromTo("#s5LivePill", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.4)" }, 15.7);
+      tl.to(".scene5-stage", { opacity: 0, scale: 0.96, y: -20, duration: 0.45, ease: "power2.in" }, 18.1);
+
+      // -------------------------------------------------------------
+      // SCENE 6 ANIMATIONS (18.56s - 22.00s) // beat-locked: 18.56s
+      // -------------------------------------------------------------
+      tl.fromTo("#s6Box", { opacity: 0, scale: 0.92, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.8, ease: "power3.out" }, 18.6);
+      tl.fromTo(".link-badge", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15, ease: "power2.out" }, 19.3);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

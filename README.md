@@ -24,6 +24,20 @@
 
 ---
 
+<p align="center">
+  <video src="./assets/fwork-launch.mp4" poster="./assets/fwork-launch.jpg" width="100%" controls>
+    <a href="./assets/fwork-launch.mp4">
+      <img src="./assets/fwork-launch.jpg" alt="Fwork Product Launch Video" width="100%" />
+    </a>
+  </video>
+</p>
+
+<p align="center">
+  <em>⚡ <strong>Video giới thiệu sản phẩm Fwork (22s • Full HD • Deep Dark Mode)</strong> — Trải nghiệm 3 năng lực cốt lõi: 1-Click Chrome Extension Web Capture, Gemini 2.0 AI Sprint Breakdown &amp; Sub-10ms Zero-Refresh STOMP Kanban.</em>
+</p>
+
+---
+
 ## 🔗 Đường dẫn triển khai (Live Endpoints)
 
 | Thành phần | Môi trường Cloud (Production) | Môi trường Localhost |
@@ -137,6 +151,11 @@
 - **Lời mời bảo mật (Secure Invitations)**: Hệ thống sinh mã token mời băm **SHA-256**, có hạn dùng 7 ngày, kèm cơ chế tự hủy ngay sau khi thành viên chấp thuận hoặc khi bị quản trị viên thu hồi.
 
 ### 2.2. Động cơ Kanban kéo thả hiện đại (Interactive Kanban Engine)
+
+<p align="center">
+  <img src="./assets/kanban-board-dark.png" alt="Fwork Real-time Dark Kanban Board" width="100%" style="border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);" />
+</p>
+
 - Tương tác mượt mà với thư viện `@dnd-kit/core` và `@dnd-kit/sortable`, hỗ trợ cảm biến chuột, bàn phím và màn hình cảm ứng.
 - **Tự động hóa thông minh**: Khi đánh dấu hoàn thành task, hệ thống tự động di chuyển thẻ sang cột Hoàn thành (Done) và tự động khôi phục về vị trí ban đầu khi bỏ tick.
 - **Quản lý thẻ toàn diện**: Tiêu đề, mô tả chi tiết (Markdown preview), gán người thực hiện (Assignee), ngày hết hạn (Due date), độ ưu tiên (`LOW`, `MEDIUM`, `HIGH`, `URGENT`), hệ thống nhãn màu sắc phong phú, danh sách kiểm tra (Checklist) và khu vực bình luận tương tác.

@@ -1,0 +1,1 @@
+Still copy-pasting tasks across 47 browser tabs? Fwork transforms manual team chaos into instant velocity with sub-10ms real-time Kanban sync, one-click browser capture, and automated Gemini AI sprint breakdown. Check it out at https://fwork-web.vercel.app
