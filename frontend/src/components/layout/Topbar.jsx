@@ -4,7 +4,7 @@ import { ChevronDown, LogOut, Plus, Search, Command, Bell, CheckCircle, Sun, Moo
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { useLayout } from "./AppLayout";
-import { notificationApi } from "../../lib/api";
+import { notificationApi, getToken } from "../../lib/api";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
 import { useLanguage } from "../../context/LanguageContext";
@@ -56,16 +56,29 @@ const Topbar = ({ title, subtitle, actions, onCreateBoard }) => {
 
   // Fetch unread count periodically
   useEffect(() => {
-    if (!user) return;
+    if (!user || !getToken()) return;
+    let isCancelled = false;
+    let timerId = null;
+
     const fetchUnread = () => {
+      if (!getToken() || isCancelled) return;
       notificationApi
         .getUnreadCount()
-        .then((data) => setUnreadCount(data?.count || 0))
-        .catch(() => {});
+        .then((data) => {
+          if (!isCancelled) setUnreadCount(data?.count || 0);
+        })
+        .catch((err) => {
+          if (err?.message?.includes("401") || !getToken()) {
+            if (timerId) clearInterval(timerId);
+          }
+        });
     };
     fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
-    return () => clearInterval(interval);
+    timerId = setInterval(fetchUnread, 30000);
+    return () => {
+      isCancelled = true;
+      if (timerId) clearInterval(timerId);
+    };
   }, [user]);
 
   const loadNotifications = () => {

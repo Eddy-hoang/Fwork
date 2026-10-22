@@ -1,4 +1,5 @@
 import axios from "axios";
+import { disconnectSocket } from "./socket";
 
 const TOKEN_KEY = "kanban_token";
 const REFRESH_TOKEN_KEY = "kanban_refresh_token";
@@ -66,7 +67,8 @@ api.interceptors.response.use(
             })
             .catch((err) => {
               clearToken();
-              if (!window.location.pathname.startsWith("/login")) {
+              try { disconnectSocket(); } catch {}
+              if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
                 window.location.assign("/login");
               }
               return Promise.reject(err);
@@ -92,9 +94,10 @@ api.interceptors.response.use(
       error.message ||
       "Something went wrong";
 
-    if (error.response?.status === 401 && getToken() && (originalRequest?._retry || isAuthUrl || !getRefreshToken())) {
+    if (error.response?.status === 401 && (originalRequest?._retry || isAuthUrl || !getRefreshToken() || !getToken())) {
       clearToken();
-      if (!window.location.pathname.startsWith("/login")) {
+      try { disconnectSocket(); } catch {}
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
         window.location.assign("/login");
       }
     }

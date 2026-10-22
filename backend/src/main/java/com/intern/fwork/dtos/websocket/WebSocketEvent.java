@@ -18,12 +18,14 @@ public class WebSocketEvent {
 
     private String eventId;
     private String eventType;
+    private String type;
     @Builder.Default
     private Integer version = 1;
     private UUID boardId;
     private UserResponse actor;
     private TargetRef target;
     private Map<String, Object> data;
+    private Object payload;
     private LocalDateTime occurredAt;
 
     @Data

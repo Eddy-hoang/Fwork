@@ -44,10 +44,11 @@ const AIGenerateModal = ({ open, onClose, boardId, columns, defaultColumnId, onC
   const addAll = async () => {
     setLoading(true);
     try {
+      const targetCol = columnId || defaultColumnId || columns[0]?.id;
       const res = await aiApi.generateTasks(boardId, {
         goal: goal.trim(),
         count: Number(count),
-        column_id: columnId,
+        column_id: targetCol || undefined,
       });
       if (res && res.tasks && res.tasks.length > 0) {
         onCreated?.(res.tasks);

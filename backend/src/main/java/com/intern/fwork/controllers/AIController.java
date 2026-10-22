@@ -21,21 +21,37 @@ public class AIController {
     public static class GenerateTasksRequest {
         private String goal;
         private Integer count;
-        private UUID columnId;
-        private UUID column_id;
+        private Object columnId;
+        private Object column_id;
 
         public UUID getTargetColumnId() {
-            return columnId != null ? columnId : column_id;
+            Object col = columnId != null ? columnId : column_id;
+            if (col == null) return null;
+            String str = col.toString().trim();
+            if (str.isEmpty() || "null".equalsIgnoreCase(str) || "undefined".equalsIgnoreCase(str)) return null;
+            try {
+                return UUID.fromString(str);
+            } catch (Exception e) {
+                return null;
+            }
         }
     }
 
     @Data
     public static class BreakdownRequest {
-        private UUID taskId;
-        private UUID task_id;
+        private Object taskId;
+        private Object task_id;
 
         public UUID getTargetTaskId() {
-            return taskId != null ? taskId : task_id;
+            Object t = taskId != null ? taskId : task_id;
+            if (t == null) return null;
+            String str = t.toString().trim();
+            if (str.isEmpty() || "null".equalsIgnoreCase(str) || "undefined".equalsIgnoreCase(str)) return null;
+            try {
+                return UUID.fromString(str);
+            } catch (Exception e) {
+                return null;
+            }
         }
     }
 

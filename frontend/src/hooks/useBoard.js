@@ -58,7 +58,7 @@ export const useBoard = (boardId) => {
       const idx = prev.findIndex((t) => t.id === normalized.id);
       if (idx === -1) return [...prev, normalized];
       const next = [...prev];
-      next[idx] = normalized;
+      next[idx] = { ...next[idx], ...normalized };
       return next;
     });
   }, []);
@@ -126,7 +126,9 @@ export const useBoard = (boardId) => {
         wsEvent.target?.id ||
         wsEvent.targetId;
 
-      switch (wsEvent.type) {
+      const eventType = wsEvent.type || wsEvent.eventType;
+
+      switch (eventType) {
         case "TASK_CREATED":
         case "TASK_UPDATED":
         case "TASK_MOVED":
@@ -274,16 +276,19 @@ export const useBoard = (boardId) => {
 
   const renameColumn = useCallback(
     async (columnId, name) => {
+      const col = columns.find((c) => c.id === columnId);
+      const position = col ? col.position : undefined;
       setColumns((p) =>
         p.map((c) => (c.id === columnId ? normalizeColumn({ ...c, name, title: name }) : c))
       );
       try {
-        await columnApi.update(columnId, { name });
+        await columnApi.update(columnId, { name, position });
       } catch (err) {
         toast.error(err.message);
+        loadBoardData({ silent: true });
       }
     },
-    []
+    [columns, loadBoardData]
   );
 
   const deleteColumn = useCallback(
