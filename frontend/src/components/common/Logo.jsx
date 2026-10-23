@@ -41,18 +41,18 @@ export default function Logo({
         />
       );
     }
-    // auto theme: responsive via Tailwind dark: variant
+    // auto theme: responsive via .fwork-icon-light and .fwork-icon-dark
     return (
       <>
         <img
           src="/icon-light.png"
           alt="Fwork"
-          className="h-full w-full object-contain select-none pointer-events-none dark:hidden drop-shadow-sm"
+          className="fwork-icon-light h-full w-full object-contain select-none pointer-events-none drop-shadow-sm"
         />
         <img
           src="/icon-dark.png"
           alt="Fwork"
-          className="h-full w-full object-contain select-none pointer-events-none hidden dark:block drop-shadow-[0_2px_8px_rgba(139,92,246,0.3)]"
+          className="fwork-icon-dark h-full w-full object-contain select-none pointer-events-none drop-shadow-[0_2px_8px_rgba(139,92,246,0.3)]"
         />
       </>
     );
@@ -62,8 +62,8 @@ export default function Logo({
     theme === "dark"
       ? "text-white"
       : theme === "light"
-      ? "text-black"
-      : "text-black dark:text-white";
+      ? "text-ink"
+      : "text-ink";
 
   return (
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
@@ -74,7 +74,7 @@ export default function Logo({
       </div>
       {showText && (
         <span
-          className={`font-['Outfit','Plus_Jakarta_Sans',sans-serif] font-black tracking-[-0.03em] leading-none ${textColor} ${currentSize.text} ${textClassName}`}
+          className={`fwork-logo-text font-['Outfit','Plus_Jakarta_Sans',sans-serif] font-black tracking-[-0.03em] leading-none ${textColor} ${currentSize.text} ${textClassName}`}
         >
           Fwork
         </span>

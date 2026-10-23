@@ -33,7 +33,7 @@ const Navbar = () => {
         }`}
       >
         <Link to="/">
-          <Logo size="md" />
+          <Logo size="md" theme="light" />
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
           {navLinks.map(([label, href]) => (

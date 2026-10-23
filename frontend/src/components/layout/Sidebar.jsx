@@ -67,7 +67,7 @@ const Sidebar = ({ collapsed, onToggle, onCreateBoard, onCommand }) => {
       )}
     >
       {/* Header (pinned at top) */}
-      <div className="flex h-16 items-center gap-2.5 px-3.5 shrink-0">
+      <div className={cn("flex h-16 items-center shrink-0", collapsed ? "justify-center px-2" : "justify-between px-4")}>
         <Logo size="lg" showText={!collapsed} />
         {!collapsed && (
           <button

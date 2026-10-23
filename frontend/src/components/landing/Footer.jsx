@@ -29,7 +29,7 @@ const Footer = () => (
         {/* brand */}
         <div className="lg:col-span-2">
           <Link to="/">
-            <Logo size="md" />
+            <Logo size="md" theme="light" />
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">
             The AI-native Kanban that turns goals into shipped work — planning less so your team ships more.

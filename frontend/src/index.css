@@ -1,5 +1,32 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ----------------------------------------------------------------------------
+   Fwork Logo theme adaptation
+---------------------------------------------------------------------------- */
+.fwork-icon-light {
+  display: block;
+}
+.fwork-icon-dark {
+  display: none;
+}
+.dark .fwork-icon-light {
+  display: none;
+}
+.dark .fwork-icon-dark {
+  display: block;
+}
+.force-light .fwork-icon-light {
+  display: block !important;
+}
+.force-light .fwork-icon-dark {
+  display: none !important;
+}
+.force-light .fwork-logo-text {
+  color: #1a1726 !important;
+}
+
 /* ----------------------------------------------------------------------------
    Fwork — premium purple light theme
    Aesthetic: soft lavender off-white page · crisp white surfaces that float ·
