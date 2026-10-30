@@ -21,16 +21,14 @@ const Navbar = () => {
 
   return (
     <header
-      className={`sticky top-0 z-30 transition-all duration-300 ease-spring ${
-        scrolled ? "px-3 pt-3 sm:px-4" : "glass border-b border-line"
-      }`}
+      className={`sticky top-0 z-30 transition-all duration-300 ease-spring ${scrolled ? "px-3 pt-3 sm:px-4" : "glass border-b border-line"
+        }`}
     >
       <div
-        className={`mx-auto flex items-center justify-between transition-all duration-300 ease-spring ${
-          scrolled
+        className={`mx-auto flex items-center justify-between transition-all duration-300 ease-spring ${scrolled
             ? "glass mt-3 max-w-5xl rounded-full border border-line px-5 py-2.5 shadow-[var(--shadow-soft)]"
             : "max-w-6xl px-6 py-3.5"
-        }`}
+          }`}
       >
         <Link to="/">
           <Logo size="md" theme="light" />
